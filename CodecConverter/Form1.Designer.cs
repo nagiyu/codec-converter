@@ -1,4 +1,7 @@
-﻿namespace CodecConverter
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace CodecConverter
 {
     partial class Form1
     {
