@@ -69,6 +69,7 @@ namespace CodecConverter
             button2.TabIndex = 2;
             button2.Text = "button2";
             button2.UseVisualStyleBackColor = true;
+            button2.Click += button2_Click;
             // 
             // label2
             // 
@@ -87,6 +88,7 @@ namespace CodecConverter
             button3.TabIndex = 4;
             button3.Text = "button3";
             button3.UseVisualStyleBackColor = true;
+            button3.Click += button3_Click;
             // 
             // label3
             // 
@@ -100,6 +102,7 @@ namespace CodecConverter
             // comboBox1
             // 
             comboBox1.FormattingEnabled = true;
+            comboBox1.Items.AddRange(new object[] { "libx265" });
             comboBox1.Location = new Point(12, 99);
             comboBox1.Name = "comboBox1";
             comboBox1.Size = new Size(121, 23);
@@ -120,6 +123,7 @@ namespace CodecConverter
             button4.TabIndex = 9;
             button4.Text = "button4";
             button4.UseVisualStyleBackColor = true;
+            button4.Click += button4_Click;
             // 
             // Form1
             // 
