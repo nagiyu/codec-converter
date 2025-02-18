@@ -80,10 +80,16 @@ namespace CodecConverter.Service
 
             process.Start();
 
-            var output = process.StandardOutput.ReadToEnd();
-            var error = process.StandardError.ReadToEnd();
+            var exited = process.WaitForExit(1 * 60 * 1000);
 
-            process.WaitForExit();
+            if (!exited)
+            {
+                process.Kill();
+
+                throw new Exception("変換に失敗しました。");
+            }
+
+            var error = process.StandardError.ReadToEnd();
 
             if (!string.IsNullOrEmpty(error))
             {
