@@ -35,8 +35,8 @@ namespace CodecConverter.Service
 
             process.Start();
 
-            var output = process.StandardOutput.ReadToEnd();
             var error = process.StandardError.ReadToEnd();
+
             process.WaitForExit();
 
             var lines = error.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
@@ -61,7 +61,7 @@ namespace CodecConverter.Service
         /// <param name="codec">コーデック</param>
         public static void ConvertWithCodec(string ffmpegPath, string videoPath, string outputPath, string codec)
         {
-            var arguments = $"-i \"{videoPath}\" -c:v {codec} -c:a copy -n \"{outputPath}\"";
+            var arguments = $"-i \"{videoPath}\" -c:v {codec} -c:a copy \"{outputPath}\"";
 
             var startInfo = new ProcessStartInfo
             {
@@ -79,22 +79,6 @@ namespace CodecConverter.Service
             };
 
             process.Start();
-
-            var exited = process.WaitForExit(1 * 60 * 1000);
-
-            if (!exited)
-            {
-                process.Kill();
-
-                throw new Exception("変換に失敗しました。");
-            }
-
-            var error = process.StandardError.ReadToEnd();
-
-            if (!string.IsNullOrEmpty(error))
-            {
-                throw new Exception(error);
-            }
         }
     }
 }
