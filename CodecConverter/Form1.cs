@@ -34,7 +34,7 @@ namespace CodecConverter
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void ClickSetFFmpegPathButton(object sender, EventArgs e)
         {
             var openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Executable Files (*.exe)|*.exe";

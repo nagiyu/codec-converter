@@ -31,7 +31,7 @@ namespace CodecConverter
         /// </summary>
         private void InitializeComponent()
         {
-            button1 = new Button();
+            button_SetFFmpegPath = new Button();
             label1 = new Label();
             button2 = new Button();
             label2 = new Label();
@@ -43,15 +43,15 @@ namespace CodecConverter
             label4 = new Label();
             SuspendLayout();
             // 
-            // button1
+            // button_SetFFmpegPath
             // 
-            button1.Location = new Point(12, 12);
-            button1.Name = "button1";
-            button1.Size = new Size(75, 23);
-            button1.TabIndex = 0;
-            button1.Text = "button1";
-            button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
+            button_SetFFmpegPath.Location = new Point(12, 12);
+            button_SetFFmpegPath.Name = "button_SetFFmpegPath";
+            button_SetFFmpegPath.Size = new Size(75, 23);
+            button_SetFFmpegPath.TabIndex = 0;
+            button_SetFFmpegPath.Text = "ファイル選択";
+            button_SetFFmpegPath.UseVisualStyleBackColor = true;
+            button_SetFFmpegPath.Click += ClickSetFFmpegPathButton;
             // 
             // label1
             // 
@@ -149,7 +149,7 @@ namespace CodecConverter
             Controls.Add(label2);
             Controls.Add(button2);
             Controls.Add(label1);
-            Controls.Add(button1);
+            Controls.Add(button_SetFFmpegPath);
             Name = "Form1";
             Text = "Form1";
             ResumeLayout(false);
@@ -158,7 +158,7 @@ namespace CodecConverter
 
         #endregion
 
-        private Button button1;
+        private Button button_SetFFmpegPath;
         private Label label1;
         private Button button2;
         private Label label2;
