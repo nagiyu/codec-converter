@@ -40,6 +40,7 @@ namespace CodecConverter
             comboBox1 = new ComboBox();
             textBox1 = new TextBox();
             button4 = new Button();
+            label4 = new Label();
             SuspendLayout();
             // 
             // button1
@@ -125,11 +126,21 @@ namespace CodecConverter
             button4.UseVisualStyleBackColor = true;
             button4.Click += button4_Click;
             // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(199, 132);
+            label4.Name = "label4";
+            label4.Size = new Size(38, 15);
+            label4.TabIndex = 10;
+            label4.Text = "label4";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(label4);
             Controls.Add(button4);
             Controls.Add(textBox1);
             Controls.Add(comboBox1);
@@ -156,5 +167,6 @@ namespace CodecConverter
         private ComboBox comboBox1;
         private TextBox textBox1;
         private Button button4;
+        private Label label4;
     }
 }

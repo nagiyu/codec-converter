@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Threading;
 using CodecConverter.Service;
 
 namespace CodecConverter.Tests.Services
@@ -13,7 +15,8 @@ namespace CodecConverter.Tests.Services
         {
             var videoPath = "Z:\\2024091323533800-4CE9651EE88A979D41F24CE8D6EA1C23.mp4";
             var codec = Converter.GetCodec(ffmpegPath, videoPath);
-            System.Diagnostics.Debug.WriteLine(codec);
+
+            Debug.WriteLine(codec);
         }
 
         [TestMethod]
@@ -22,7 +25,9 @@ namespace CodecConverter.Tests.Services
             var videoPath = "Z:\\2024091323533800-4CE9651EE88A979D41F24CE8D6EA1C23.mp4";
             var outputPath = $"Z:\\output_{DateTime.Now:yyyyMMddHHmmss}.mp4";
             var codec = "libx265";
-            Converter.ConvertWithCodec(ffmpegPath, videoPath, outputPath, codec);
+            var processId = Converter.ConvertWithCodec(ffmpegPath, videoPath, outputPath, codec);
+
+            Debug.WriteLine(processId);
         }
     }
 }

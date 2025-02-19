@@ -59,7 +59,8 @@ namespace CodecConverter.Service
         /// <param name="videoPath">変換元のパス</param>
         /// <param name="outputPath">変換先のパス</param>
         /// <param name="codec">コーデック</param>
-        public static void ConvertWithCodec(string ffmpegPath, string videoPath, string outputPath, string codec)
+        /// <returns>プロセス ID</returns>
+        public static int ConvertWithCodec(string ffmpegPath, string videoPath, string outputPath, string codec)
         {
             var arguments = $"-i \"{videoPath}\" -c:v {codec} -c:a copy \"{outputPath}\"";
 
@@ -79,6 +80,8 @@ namespace CodecConverter.Service
             };
 
             process.Start();
+
+            return process.Id;
         }
     }
 }

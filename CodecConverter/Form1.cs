@@ -16,9 +16,71 @@ namespace CodecConverter
         /// </summary>
         private string inputVideoPath = string.Empty;
 
+        /// <summary>
+        /// Process ID
+        /// </summary>
+        private int? processId = null;
+
+        /// <summary>
+        /// タイマー
+        /// </summary>
+        private System.Timers.Timer timer;
+
+        /// <summary>
+        /// Process ID
+        /// </summary>
+        public int? ProcessId
+        {
+            get => processId;
+            set
+            {
+                processId = value;
+
+                if (processId.HasValue)
+                {
+                    UpdateLabel(processId.ToString());
+                }
+                else
+                {
+                    UpdateLabel(string.Empty);
+                }
+            }
+        }
+
+        private void UpdateLabel(string text)
+        {
+            if (label4.InvokeRequired)
+            {
+                label4.Invoke(new Action(() => label4.Text = text));
+            }
+            else
+            {
+                label4.Text = text;
+            }
+        }
+
         public Form1()
         {
+            timer = new System.Timers.Timer(1000);
+            timer.Elapsed += (sender, e) =>
+            {
+                if (ProcessId.HasValue)
+                {
+                    if (ProcessUtil.IsExited(ProcessId.Value))
+                    {
+                        ProcessId = null;
+                    }
+                }
+            };
+            timer.AutoReset = true;
+            timer.Enabled = true;
+
             InitializeComponent();
+        }
+
+        ~Form1()
+        {
+            timer.Dispose();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -55,7 +117,7 @@ namespace CodecConverter
         {
             var codec = comboBox1.Text;
             var outputVideoPath = textBox1.Text;
-            Converter.ConvertWithCodec(ffmpegPath, inputVideoPath, outputVideoPath, codec);
+            ProcessId = Converter.ConvertWithCodec(ffmpegPath, inputVideoPath, outputVideoPath, codec);
         }
     }
 }
