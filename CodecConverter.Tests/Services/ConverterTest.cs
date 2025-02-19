@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
 using CodecConverter.Service;
 
 namespace CodecConverter.Tests.Services
