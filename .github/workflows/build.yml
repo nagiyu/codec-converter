@@ -27,8 +27,11 @@ jobs:
     - name: Build
       run: dotnet build CodecConverter\CodecConverter.csproj --configuration Release --no-restore
 
+    - name: Publish
+      run: dotnet publish CodecConverter\CodecConverter.csproj --configuration Release --self-contained --runtime win-x64 --output ${{ runner.temp }}/publish
+
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
         name: CodecConverter
-        path: CodecConverter\bin\Release\net8.0-windows
+        path: ${{ runner.temp }}/publish
