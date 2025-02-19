@@ -13,20 +13,19 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.0.2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
 
     - name: Restore dependencies
-      run: msbuild -t:restore CodecConverter\CodecConverter.csproj
-
-    - name: NuGet restore
-      run: nuget restore CodecConverter.sln
+      run: dotnet restore CodecConverter\CodecConverter.csproj
 
     - name: Clean
-      run: msbuild -t:Clean -p:Configuration=Release CodecConverter\CodecConverter.csproj
+      run: dotnet clean CodecConverter\CodecConverter.csproj --configuration Release
 
     - name: Build
-      run: msbuild -t:Build -p:Configuration=Release CodecConverter\CodecConverter.csproj
+      run: dotnet build CodecConverter\CodecConverter.csproj --configuration Release --no-restore
 
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
