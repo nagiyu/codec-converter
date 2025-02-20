@@ -3,7 +3,7 @@ using System.Windows.Forms;
 
 namespace CodecConverter
 {
-    partial class Form1
+    partial class CodecConverterForm
     {
         /// <summary>
         ///  Required designer variable.
@@ -32,20 +32,22 @@ namespace CodecConverter
         private void InitializeComponent()
         {
             button_SetFFmpegPath = new Button();
-            label1 = new Label();
-            button2 = new Button();
-            label2 = new Label();
-            button3 = new Button();
-            label3 = new Label();
-            comboBox1 = new ComboBox();
-            textBox1 = new TextBox();
-            button4 = new Button();
-            label4 = new Label();
+            button_SetInputVideoPath = new Button();
+            label_InputVideoCodec = new Label();
+            comboBox_CodecList = new ComboBox();
+            textBox_SetOutputVideoPath = new TextBox();
+            button_Convert = new Button();
+            label_ConvertStatus = new Label();
+            label_SetFFmpegPath = new Label();
+            label_SetInputVideoPath = new Label();
+            label_SelectCodec = new Label();
+            label_SetOutputVideoPath = new Label();
+            button_Reset = new Button();
             SuspendLayout();
             // 
             // button_SetFFmpegPath
             // 
-            button_SetFFmpegPath.Location = new Point(12, 12);
+            button_SetFFmpegPath.Location = new Point(93, 12);
             button_SetFFmpegPath.Name = "button_SetFFmpegPath";
             button_SetFFmpegPath.Size = new Size(75, 23);
             button_SetFFmpegPath.TabIndex = 0;
@@ -53,120 +55,144 @@ namespace CodecConverter
             button_SetFFmpegPath.UseVisualStyleBackColor = true;
             button_SetFFmpegPath.Click += ClickSetFFmpegPathButton;
             // 
-            // label1
+            // button_SetInputVideoPath
             // 
-            label1.AutoSize = true;
-            label1.Location = new Point(93, 16);
-            label1.Name = "label1";
-            label1.Size = new Size(38, 15);
-            label1.TabIndex = 1;
-            label1.Text = "label1";
+            button_SetInputVideoPath.Location = new Point(93, 41);
+            button_SetInputVideoPath.Name = "button_SetInputVideoPath";
+            button_SetInputVideoPath.Size = new Size(75, 23);
+            button_SetInputVideoPath.TabIndex = 2;
+            button_SetInputVideoPath.Text = "ファイル選択";
+            button_SetInputVideoPath.UseVisualStyleBackColor = true;
+            button_SetInputVideoPath.Click += ClickSetInputVideoPathButton;
             // 
-            // button2
+            // label_InputVideoCodec
             // 
-            button2.Location = new Point(12, 41);
-            button2.Name = "button2";
-            button2.Size = new Size(75, 23);
-            button2.TabIndex = 2;
-            button2.Text = "button2";
-            button2.UseVisualStyleBackColor = true;
-            button2.Click += button2_Click;
+            label_InputVideoCodec.AutoSize = true;
+            label_InputVideoCodec.Location = new Point(220, 73);
+            label_InputVideoCodec.Name = "label_InputVideoCodec";
+            label_InputVideoCodec.Size = new Size(74, 15);
+            label_InputVideoCodec.TabIndex = 5;
+            label_InputVideoCodec.Text = "今のコーデック:";
             // 
-            // label2
+            // comboBox_CodecList
             // 
-            label2.AutoSize = true;
-            label2.Location = new Point(93, 45);
-            label2.Name = "label2";
-            label2.Size = new Size(38, 15);
-            label2.TabIndex = 3;
-            label2.Text = "label2";
+            comboBox_CodecList.FormattingEnabled = true;
+            comboBox_CodecList.Items.AddRange(new object[] { "libx265" });
+            comboBox_CodecList.Location = new Point(93, 70);
+            comboBox_CodecList.Name = "comboBox_CodecList";
+            comboBox_CodecList.Size = new Size(121, 23);
+            comboBox_CodecList.TabIndex = 7;
             // 
-            // button3
+            // textBox_SetOutputVideoPath
             // 
-            button3.Location = new Point(12, 70);
-            button3.Name = "button3";
-            button3.Size = new Size(75, 23);
-            button3.TabIndex = 4;
-            button3.Text = "button3";
-            button3.UseVisualStyleBackColor = true;
-            button3.Click += button3_Click;
+            textBox_SetOutputVideoPath.Location = new Point(93, 99);
+            textBox_SetOutputVideoPath.Name = "textBox_SetOutputVideoPath";
+            textBox_SetOutputVideoPath.Size = new Size(172, 23);
+            textBox_SetOutputVideoPath.TabIndex = 8;
             // 
-            // label3
+            // button_Convert
             // 
-            label3.AutoSize = true;
-            label3.Location = new Point(93, 74);
-            label3.Name = "label3";
-            label3.Size = new Size(38, 15);
-            label3.TabIndex = 5;
-            label3.Text = "label3";
+            button_Convert.Location = new Point(93, 128);
+            button_Convert.Name = "button_Convert";
+            button_Convert.Size = new Size(75, 23);
+            button_Convert.TabIndex = 9;
+            button_Convert.Text = "変換";
+            button_Convert.UseVisualStyleBackColor = true;
+            button_Convert.Click += Convert;
             // 
-            // comboBox1
+            // label_ConvertStatus
             // 
-            comboBox1.FormattingEnabled = true;
-            comboBox1.Items.AddRange(new object[] { "libx265" });
-            comboBox1.Location = new Point(12, 99);
-            comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(121, 23);
-            comboBox1.TabIndex = 7;
+            label_ConvertStatus.AutoSize = true;
+            label_ConvertStatus.Location = new Point(174, 132);
+            label_ConvertStatus.Name = "label_ConvertStatus";
+            label_ConvertStatus.Size = new Size(0, 15);
+            label_ConvertStatus.TabIndex = 10;
             // 
-            // textBox1
+            // label_SetFFmpegPath
             // 
-            textBox1.Location = new Point(12, 128);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(100, 23);
-            textBox1.TabIndex = 8;
+            label_SetFFmpegPath.AutoSize = true;
+            label_SetFFmpegPath.Location = new Point(12, 16);
+            label_SetFFmpegPath.Name = "label_SetFFmpegPath";
+            label_SetFFmpegPath.Size = new Size(75, 15);
+            label_SetFFmpegPath.TabIndex = 11;
+            label_SetFFmpegPath.Text = "FFmpeg 設定";
             // 
-            // button4
+            // label_SetInputVideoPath
             // 
-            button4.Location = new Point(118, 128);
-            button4.Name = "button4";
-            button4.Size = new Size(75, 23);
-            button4.TabIndex = 9;
-            button4.Text = "button4";
-            button4.UseVisualStyleBackColor = true;
-            button4.Click += button4_Click;
+            label_SetInputVideoPath.AutoSize = true;
+            label_SetInputVideoPath.Location = new Point(12, 45);
+            label_SetInputVideoPath.Name = "label_SetInputVideoPath";
+            label_SetInputVideoPath.Size = new Size(67, 15);
+            label_SetInputVideoPath.TabIndex = 12;
+            label_SetInputVideoPath.Text = "変換元設定";
             // 
-            // label4
+            // label_SelectCodec
             // 
-            label4.AutoSize = true;
-            label4.Location = new Point(199, 132);
-            label4.Name = "label4";
-            label4.Size = new Size(38, 15);
-            label4.TabIndex = 10;
-            label4.Text = "label4";
+            label_SelectCodec.AutoSize = true;
+            label_SelectCodec.Location = new Point(12, 73);
+            label_SelectCodec.Name = "label_SelectCodec";
+            label_SelectCodec.Size = new Size(73, 15);
+            label_SelectCodec.TabIndex = 13;
+            label_SelectCodec.Text = "コーデック選択";
             // 
-            // Form1
+            // label_SetOutputVideoPath
+            // 
+            label_SetOutputVideoPath.AutoSize = true;
+            label_SetOutputVideoPath.Location = new Point(12, 102);
+            label_SetOutputVideoPath.Name = "label_SetOutputVideoPath";
+            label_SetOutputVideoPath.Size = new Size(67, 15);
+            label_SetOutputVideoPath.TabIndex = 14;
+            label_SetOutputVideoPath.Text = "変換先設定";
+            // 
+            // button_Reset
+            // 
+            button_Reset.Location = new Point(93, 157);
+            button_Reset.Name = "button_Reset";
+            button_Reset.Size = new Size(75, 23);
+            button_Reset.TabIndex = 15;
+            button_Reset.Text = "リセット";
+            button_Reset.UseVisualStyleBackColor = true;
+            // 
+            // CodecConverterForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
-            Controls.Add(label4);
-            Controls.Add(button4);
-            Controls.Add(textBox1);
-            Controls.Add(comboBox1);
-            Controls.Add(label3);
-            Controls.Add(button3);
-            Controls.Add(label2);
-            Controls.Add(button2);
-            Controls.Add(label1);
+            Controls.Add(button_Reset);
+            Controls.Add(label_SetOutputVideoPath);
+            Controls.Add(label_SelectCodec);
+            Controls.Add(label_SetInputVideoPath);
+            Controls.Add(label_SetFFmpegPath);
+            Controls.Add(label_ConvertStatus);
+            Controls.Add(button_Convert);
+            Controls.Add(textBox_SetOutputVideoPath);
+            Controls.Add(comboBox_CodecList);
+            Controls.Add(label_InputVideoCodec);
+            Controls.Add(button_SetInputVideoPath);
             Controls.Add(button_SetFFmpegPath);
-            Name = "Form1";
-            Text = "Form1";
+            Name = "CodecConverterForm";
+            Text = "CodecConverter";
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
 
+        /// <summary>
+        /// FFmpeg のパスを設定するボタン
+        /// </summary>
         private Button button_SetFFmpegPath;
-        private Label label1;
-        private Button button2;
-        private Label label2;
-        private Button button3;
-        private Label label3;
-        private ComboBox comboBox1;
-        private TextBox textBox1;
-        private Button button4;
-        private Label label4;
+
+        private Button button_SetInputVideoPath;
+        private Label label_InputVideoCodec;
+        private ComboBox comboBox_CodecList;
+        private TextBox textBox_SetOutputVideoPath;
+        private Button button_Convert;
+        private Label label_ConvertStatus;
+        private Label label_SetFFmpegPath;
+        private Label label_SetInputVideoPath;
+        private Label label_SelectCodec;
+        private Label label_SetOutputVideoPath;
+        private Button button_Reset;
     }
 }

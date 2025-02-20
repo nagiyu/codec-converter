@@ -10,6 +10,22 @@ namespace CodecConverter.Tests.Services
         private readonly string ffmpegPath = "C:\\Users\\vboxuser\\Downloads\\ffmpeg-2025-02-17-git-b92577405b-full_build\\ffmpeg-2025-02-17-git-b92577405b-full_build\\bin\\ffmpeg.exe";
 
         [TestMethod]
+        public void IsFFmpeg_True()
+        {
+            var isFFmpeg = Converter.IsFFmpeg(ffmpegPath);
+
+            Assert.IsTrue(isFFmpeg);
+        }
+
+        [TestMethod]
+        public void IsFFmpeg_False()
+        {
+            var isFFmpeg = Converter.IsFFmpeg("C:\\Users\\vboxuser\\Downloads\\ffmpeg-2025-02-17-git-b92577405b-full_build\\ffmpeg-2025-02-17-git-b92577405b-full_build\\bin\\ffplay.exe");
+
+            Assert.IsFalse(isFFmpeg);
+        }
+
+        [TestMethod]
         public void GetCodec()
         {
             var videoPath = "Z:\\2024091323533800-4CE9651EE88A979D41F24CE8D6EA1C23.mp4";

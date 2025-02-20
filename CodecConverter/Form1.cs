@@ -5,7 +5,7 @@ using CodecConverter.Service;
 
 namespace CodecConverter
 {
-    public partial class Form1 : Form
+    public partial class CodecConverterForm : Form
     {
         /// <summary>
         /// FFmpeg のパス
@@ -17,21 +17,118 @@ namespace CodecConverter
         /// </summary>
         private string inputVideoPath = string.Empty;
 
-        private void UpdateLabel(string text)
+        /// <summary>
+        /// ローディング状態
+        /// </summary>
+        private bool isLoading = false;
+
+        /// <summary>
+        /// ローディング状態
+        /// </summary>
+        private bool IsLoading
         {
-            if (label4.InvokeRequired)
+            get => isLoading;
+            set
             {
-                label4.Invoke(new Action(() => label4.Text = text));
-            }
-            else
-            {
-                label4.Text = text;
+                isLoading = value;
+
+                if (isLoading)
+                {
+                    SetFFmpegPathButtonEnabled(false);
+                    SetResetButtonEnabled(false);
+                }
+                else
+                {
+                    SetFFmpegPathButtonEnabled(true);
+                    SetResetButtonEnabled(true);
+                }
             }
         }
 
-        public Form1()
+        private void UpdateConvertStatusLabel(string text)
+        {
+            if (label_ConvertStatus.InvokeRequired)
+            {
+                label_ConvertStatus.Invoke(new Action(() => label_ConvertStatus.Text = text));
+            }
+            else
+            {
+                label_ConvertStatus.Text = text;
+            }
+        }
+
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        public CodecConverterForm()
         {
             InitializeComponent();
+        }
+
+        /// <summary>
+        /// FFmpeg のパスを設定するボタンの有効/無効を設定する
+        /// </summary>
+        /// <param name="enabled">有効/無効</param>
+        private void SetFFmpegPathButtonEnabled(bool enabled)
+        {
+            if (button_SetFFmpegPath.InvokeRequired)
+            {
+                button_SetFFmpegPath.Invoke(new Action(() => button_SetFFmpegPath.Enabled = enabled));
+            }
+            else
+            {
+                button_SetFFmpegPath.Enabled = enabled;
+            }
+        }
+
+        /// <summary>
+        /// FFmpeg のパスを設定するボタンの表示/非表示を設定する
+        /// </summary>
+        /// <param name="visible">表示/非表示</param>
+        private void SetFFmpegPathButtonVisible(bool visible)
+        {
+            if (button_SetFFmpegPath.InvokeRequired)
+            {
+                button_SetFFmpegPath.Invoke(new Action(() => button_SetFFmpegPath.Visible = visible));
+            }
+            else
+            {
+                button_SetFFmpegPath.Visible = visible;
+            }
+        }
+
+        /// <summary>
+        /// リセットボタンの有効/無効を設定する
+        /// </summary>
+        /// <param name="enabled">有効/無効</param>
+        private void SetResetButtonEnabled(bool enabled)
+        {
+            if (button_Reset.InvokeRequired)
+            {
+                button_Reset.Invoke(new Action(() => button_Reset.Enabled = enabled));
+            }
+            else
+            {
+                button_Reset.Enabled = enabled;
+            }
+        }
+
+        /// <summary>
+        /// ローディングパネルの表示を伴う処理
+        /// </summary>
+        private void ActionWithLoading(Action action)
+        {
+            if (IsLoading)
+            {
+                action();
+                return;
+            }
+
+            IsLoading = true;
+
+            action();
+
+            IsLoading = false;
         }
 
         private void ClickSetFFmpegPathButton(object sender, EventArgs e)
@@ -41,12 +138,19 @@ namespace CodecConverter
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                ffmpegPath = openFileDialog.FileName;
-                label1.Text = ffmpegPath;
+                ActionWithLoading(() =>
+                {
+                    if (!Converter.IsFFmpeg(openFileDialog.FileName))
+                    {
+                        return;
+                    }
+                    ffmpegPath = openFileDialog.FileName;
+                    SetFFmpegPathButtonVisible(false);
+                });
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void ClickSetInputVideoPathButton(object sender, EventArgs e)
         {
             var openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Executable Files (*.mp4)|*.mp4";
@@ -54,31 +158,27 @@ namespace CodecConverter
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 inputVideoPath = openFileDialog.FileName;
-                label2.Text = inputVideoPath;
             }
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void Convert(object sender, EventArgs e)
         {
-            var codec = Converter.GetCodec(ffmpegPath, inputVideoPath);
-            label3.Text = codec;
-        }
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-            var codec = comboBox1.Text;
-            var outputVideoPath = textBox1.Text;
-
-            var processId = Converter.ConvertWithCodec(ffmpegPath, inputVideoPath, outputVideoPath, codec);
-
-            UpdateLabel("変換中...");
-
-            while (!ProcessUtil.IsExited(processId))
+            ActionWithLoading(() =>
             {
-                Thread.Sleep(1000);
-            }
+                var codec = comboBox_CodecList.Text;
+                var outputVideoPath = textBox_SetOutputVideoPath.Text;
 
-            UpdateLabel(string.Empty);
+                var processId = Converter.ConvertWithCodec(ffmpegPath, inputVideoPath, outputVideoPath, codec);
+
+                UpdateConvertStatusLabel("変換中...");
+
+                while (!ProcessUtil.IsExited(processId))
+                {
+                    Thread.Sleep(1000);
+                }
+
+                UpdateConvertStatusLabel(string.Empty);
+            });
         }
     }
 }
