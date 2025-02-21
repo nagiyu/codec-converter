@@ -35,12 +35,18 @@ namespace CodecConverter
                 if (isLoading)
                 {
                     SetFFmpegPathButtonEnabled(false);
+
+                    SetInputVideoPathButtonEnabled(false);
+
+                    SetCodecListComboBoxEnabled(false);
+
+                    SetOutputVideoPathTextBoxEnabled(false);
+
                     SetResetButtonEnabled(false);
                 }
                 else
                 {
-                    SetFFmpegPathButtonEnabled(true);
-                    SetResetButtonEnabled(true);
+                    ChangeStatus();
                 }
             }
         }
@@ -63,6 +69,10 @@ namespace CodecConverter
         public CodecConverterForm()
         {
             InitializeComponent();
+
+            comboBox_CodecList.SelectedIndex = 0;
+
+            ChangeStatus();
         }
 
         /// <summary>
@@ -98,6 +108,104 @@ namespace CodecConverter
         }
 
         /// <summary>
+        /// 変換元の動画ファイルを設定するボタンの有効/無効を設定する
+        /// </summary>
+        /// <param name="enabled">有効/無効</param>
+        private void SetInputVideoPathButtonEnabled(bool enabled)
+        {
+            if (button_SetInputVideoPath.InvokeRequired)
+            {
+                button_SetInputVideoPath.Invoke(new Action(() => button_SetInputVideoPath.Enabled = enabled));
+            }
+            else
+            {
+                button_SetInputVideoPath.Enabled = enabled;
+            }
+        }
+
+        /// <summary>
+        /// 変換元の動画ファイルを設定するボタンの表示/非表示を設定する
+        /// </summary>
+        /// <param name="visible">表示/非表示</param>
+        private void SetInputVideoPathButtonVisible(bool visible)
+        {
+            if (button_SetInputVideoPath.InvokeRequired)
+            {
+                button_SetInputVideoPath.Invoke(new Action(() => button_SetInputVideoPath.Visible = visible));
+            }
+            else
+            {
+                button_SetInputVideoPath.Visible = visible;
+            }
+        }
+
+        /// <summary>
+        /// コーデック選択のコンボボックスの有効/無効を設定する
+        /// </summary>
+        /// <param name="enabled">有効/無効</param>
+        private void SetCodecListComboBoxEnabled(bool enabled)
+        {
+            if (comboBox_CodecList.InvokeRequired)
+            {
+                comboBox_CodecList.Invoke(new Action(() => comboBox_CodecList.Enabled = enabled));
+            }
+            else
+            {
+                comboBox_CodecList.Enabled = enabled;
+            }
+        }
+
+        /// <summary>
+        /// 変換元の動画ファイルのコーデックを表示するラベルを更新する
+        /// </summary>
+        /// <param name="text">コーデック</param>
+        private void UpdateInputVideoCodecLabel(string text)
+        {
+            var labelText = $"今のコーデック: {text}";
+
+            if (label_InputVideoCodec.InvokeRequired)
+            {
+                label_InputVideoCodec.Invoke(new Action(() => label_InputVideoCodec.Text = labelText));
+            }
+            else
+            {
+                label_InputVideoCodec.Text = labelText;
+            }
+        }
+
+        /// <summary>
+        /// 変換先の動画ファイルを設定するテキストボックスの有効/無効を設定する
+        /// </summary>
+        /// <param name="enabled">有効/無効</param>
+        private void SetOutputVideoPathTextBoxEnabled(bool enabled)
+        {
+            if (textBox_SetOutputVideoPath.InvokeRequired)
+            {
+                textBox_SetOutputVideoPath.Invoke(new Action(() => textBox_SetOutputVideoPath.Enabled = enabled));
+            }
+            else
+            {
+                textBox_SetOutputVideoPath.Enabled = enabled;
+            }
+        }
+
+        /// <summary>
+        /// 変換先の動画ファイルを設定するテキストボックスを更新する
+        /// </summary>
+        /// <param name="text">変換先の動画ファイル</param>
+        private void UpdateSetOutputVideoPathTextBox(string text)
+        {
+            if (textBox_SetOutputVideoPath.InvokeRequired)
+            {
+                textBox_SetOutputVideoPath.Invoke(new Action(() => textBox_SetOutputVideoPath.Text = text));
+            }
+            else
+            {
+                textBox_SetOutputVideoPath.Text = text;
+            }
+        }
+
+        /// <summary>
         /// リセットボタンの有効/無効を設定する
         /// </summary>
         /// <param name="enabled">有効/無効</param>
@@ -114,7 +222,37 @@ namespace CodecConverter
         }
 
         /// <summary>
-        /// ローディングパネルの表示を伴う処理
+        /// 全体の状態を変更する
+        /// </summary>
+        private void ChangeStatus()
+        {
+            SetFFmpegPathButtonEnabled(true);
+
+            SetInputVideoPathButtonEnabled(true);
+
+            if (!string.IsNullOrEmpty(inputVideoPath))
+            {
+                SetCodecListComboBoxEnabled(true);
+            }
+            else
+            {
+                SetCodecListComboBoxEnabled(false);
+            }
+
+            if (!string.IsNullOrEmpty(inputVideoPath))
+            {
+                SetOutputVideoPathTextBoxEnabled(true);
+            }
+            else
+            {
+                SetOutputVideoPathTextBoxEnabled(false);
+            }
+
+            SetResetButtonEnabled(true);
+        }
+
+        /// <summary>
+        /// ローディングを伴う処理
         /// </summary>
         private void ActionWithLoading(Action action)
         {
@@ -131,6 +269,11 @@ namespace CodecConverter
             IsLoading = false;
         }
 
+        /// <summary>
+        /// FFmpeg のパスを設定するボタンのクリックイベント
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">Args</param>
         private void ClickSetFFmpegPathButton(object sender, EventArgs e)
         {
             var openFileDialog = new OpenFileDialog();
@@ -150,6 +293,11 @@ namespace CodecConverter
             }
         }
 
+        /// <summary>
+        /// 変換元の動画ファイルを設定するボタンのクリックイベント
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">Args</param>
         private void ClickSetInputVideoPathButton(object sender, EventArgs e)
         {
             var openFileDialog = new OpenFileDialog();
@@ -157,10 +305,25 @@ namespace CodecConverter
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                inputVideoPath = openFileDialog.FileName;
+                ActionWithLoading(() =>
+                {
+                    inputVideoPath = openFileDialog.FileName;
+
+                    var codec = Converter.GetCodec(ffmpegPath, inputVideoPath);
+
+                    UpdateInputVideoCodecLabel(codec);
+
+                    var outputFileName = inputVideoPath.EndsWith(".mp4") ? inputVideoPath.Substring(0, inputVideoPath.Length - 4) : inputVideoPath;
+                    UpdateSetOutputVideoPathTextBox($"{outputFileName}_{comboBox_CodecList.Text}.mp4");
+                });
             }
         }
 
+        /// <summary>
+        /// 変換ボタンのクリックイベント
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">Args</param>
         private void Convert(object sender, EventArgs e)
         {
             ActionWithLoading(() =>

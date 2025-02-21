@@ -68,7 +68,7 @@ namespace CodecConverter
             // label_InputVideoCodec
             // 
             label_InputVideoCodec.AutoSize = true;
-            label_InputVideoCodec.Location = new Point(220, 73);
+            label_InputVideoCodec.Location = new Point(93, 67);
             label_InputVideoCodec.Name = "label_InputVideoCodec";
             label_InputVideoCodec.Size = new Size(74, 15);
             label_InputVideoCodec.TabIndex = 5;
@@ -78,21 +78,21 @@ namespace CodecConverter
             // 
             comboBox_CodecList.FormattingEnabled = true;
             comboBox_CodecList.Items.AddRange(new object[] { "libx265" });
-            comboBox_CodecList.Location = new Point(93, 70);
+            comboBox_CodecList.Location = new Point(93, 85);
             comboBox_CodecList.Name = "comboBox_CodecList";
             comboBox_CodecList.Size = new Size(121, 23);
             comboBox_CodecList.TabIndex = 7;
             // 
             // textBox_SetOutputVideoPath
             // 
-            textBox_SetOutputVideoPath.Location = new Point(93, 99);
+            textBox_SetOutputVideoPath.Location = new Point(93, 114);
             textBox_SetOutputVideoPath.Name = "textBox_SetOutputVideoPath";
-            textBox_SetOutputVideoPath.Size = new Size(172, 23);
+            textBox_SetOutputVideoPath.Size = new Size(339, 23);
             textBox_SetOutputVideoPath.TabIndex = 8;
             // 
             // button_Convert
             // 
-            button_Convert.Location = new Point(93, 128);
+            button_Convert.Location = new Point(93, 143);
             button_Convert.Name = "button_Convert";
             button_Convert.Size = new Size(75, 23);
             button_Convert.TabIndex = 9;
@@ -103,7 +103,7 @@ namespace CodecConverter
             // label_ConvertStatus
             // 
             label_ConvertStatus.AutoSize = true;
-            label_ConvertStatus.Location = new Point(174, 132);
+            label_ConvertStatus.Location = new Point(174, 147);
             label_ConvertStatus.Name = "label_ConvertStatus";
             label_ConvertStatus.Size = new Size(0, 15);
             label_ConvertStatus.TabIndex = 10;
@@ -129,7 +129,7 @@ namespace CodecConverter
             // label_SelectCodec
             // 
             label_SelectCodec.AutoSize = true;
-            label_SelectCodec.Location = new Point(12, 73);
+            label_SelectCodec.Location = new Point(12, 88);
             label_SelectCodec.Name = "label_SelectCodec";
             label_SelectCodec.Size = new Size(73, 15);
             label_SelectCodec.TabIndex = 13;
@@ -138,7 +138,7 @@ namespace CodecConverter
             // label_SetOutputVideoPath
             // 
             label_SetOutputVideoPath.AutoSize = true;
-            label_SetOutputVideoPath.Location = new Point(12, 102);
+            label_SetOutputVideoPath.Location = new Point(12, 117);
             label_SetOutputVideoPath.Name = "label_SetOutputVideoPath";
             label_SetOutputVideoPath.Size = new Size(67, 15);
             label_SetOutputVideoPath.TabIndex = 14;
@@ -146,7 +146,7 @@ namespace CodecConverter
             // 
             // button_Reset
             // 
-            button_Reset.Location = new Point(93, 157);
+            button_Reset.Location = new Point(93, 172);
             button_Reset.Name = "button_Reset";
             button_Reset.Size = new Size(75, 23);
             button_Reset.TabIndex = 15;
@@ -158,18 +158,18 @@ namespace CodecConverter
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
-            Controls.Add(button_Reset);
-            Controls.Add(label_SetOutputVideoPath);
-            Controls.Add(label_SelectCodec);
-            Controls.Add(label_SetInputVideoPath);
             Controls.Add(label_SetFFmpegPath);
-            Controls.Add(label_ConvertStatus);
-            Controls.Add(button_Convert);
-            Controls.Add(textBox_SetOutputVideoPath);
+            Controls.Add(button_SetFFmpegPath);
+            Controls.Add(label_SetInputVideoPath);
+            Controls.Add(button_SetInputVideoPath);
+            Controls.Add(label_SelectCodec);
             Controls.Add(comboBox_CodecList);
             Controls.Add(label_InputVideoCodec);
-            Controls.Add(button_SetInputVideoPath);
-            Controls.Add(button_SetFFmpegPath);
+            Controls.Add(label_SetOutputVideoPath);
+            Controls.Add(textBox_SetOutputVideoPath);
+            Controls.Add(button_Reset);
+            Controls.Add(label_ConvertStatus);
+            Controls.Add(button_Convert);
             Name = "CodecConverterForm";
             Text = "CodecConverter";
             ResumeLayout(false);
@@ -179,20 +179,52 @@ namespace CodecConverter
         #endregion
 
         /// <summary>
+        /// FFmpeg のパスを設定するラベル
+        /// </summary>
+        private Label label_SetFFmpegPath;
+
+        /// <summary>
         /// FFmpeg のパスを設定するボタン
         /// </summary>
         private Button button_SetFFmpegPath;
 
+        /// <summary>
+        /// 変換元の動画ファイルを設定するラベル
+        /// </summary>
+        private Label label_SetInputVideoPath;
+
+        /// <summary>
+        /// 変換元の動画ファイルを設定するボタン
+        /// </summary>
         private Button button_SetInputVideoPath;
-        private Label label_InputVideoCodec;
+
+        /// <summary>
+        /// コーデック選択のラベル
+        /// </summary>
+        private Label label_SelectCodec;
+
+        /// <summary>
+        /// コーデック選択のコンボボックス
+        /// </summary>
         private ComboBox comboBox_CodecList;
+
+        /// <summary>
+        /// 変換元の動画ファイルのコーデックを表示するラベル
+        /// </summary>
+        private Label label_InputVideoCodec;
+
+        /// <summary>
+        /// 変換先の動画ファイルを設定するラベル
+        /// </summary>
+        private Label label_SetOutputVideoPath;
+
+        /// <summary>
+        /// 変換先の動画ファイルを設定するテキストボックス
+        /// </summary>
         private TextBox textBox_SetOutputVideoPath;
+
         private Button button_Convert;
         private Label label_ConvertStatus;
-        private Label label_SetFFmpegPath;
-        private Label label_SetInputVideoPath;
-        private Label label_SelectCodec;
-        private Label label_SetOutputVideoPath;
         private Button button_Reset;
     }
 }
