@@ -110,6 +110,70 @@ namespace CodecConverter
         }
 
         /// <summary>
+        /// FFmpeg のパスを設定するリンクラベルの表示/非表示を設定する
+        /// </summary>
+        /// <param name="visible">表示/非表示</param>
+        private void SetFFmpegPathLinkLabelVisible(bool visible)
+        {
+            if (linkLabel_SetFFmpegPath.InvokeRequired)
+            {
+                linkLabel_SetFFmpegPath.Invoke(new Action(() => linkLabel_SetFFmpegPath.Visible = visible));
+            }
+            else
+            {
+                linkLabel_SetFFmpegPath.Visible = visible;
+            }
+        }
+
+        /// <summary>
+        /// FFmpeg のパスを設定するラベルを更新する
+        /// </summary>
+        /// <param name="text">ラベルのテキスト</param>
+        private void UpdateSetFFmpegPathLinkLabel(string text)
+        {
+            if (linkLabel_SetFFmpegPath.InvokeRequired)
+            {
+                linkLabel_SetFFmpegPath.Invoke(new Action(() => linkLabel_SetFFmpegPath.Text = text));
+            }
+            else
+            {
+                linkLabel_SetFFmpegPath.Text = text;
+            }
+        }
+
+        /// <summary>
+        /// 変換元の動画ファイルを設定するリンクラベルの表示/非表示を設定する
+        /// </summary>
+        /// <param name="visible">表示/非表示</param>
+        private void SetInputVideoPathLinkLabelVisible(bool visible)
+        {
+            if (linkLabel_SetInputVideoPath.InvokeRequired)
+            {
+                linkLabel_SetInputVideoPath.Invoke(new Action(() => linkLabel_SetInputVideoPath.Visible = visible));
+            }
+            else
+            {
+                linkLabel_SetInputVideoPath.Visible = visible;
+            }
+        }
+
+        /// <summary>
+        /// 変換元の動画ファイルを設定するリンクラベルを更新する
+        /// </summary>
+        /// <param name="text">ラベルのテキスト</param>
+        private void UpdateSetInputVideoPathLinkLabel(string text)
+        {
+            if (linkLabel_SetInputVideoPath.InvokeRequired)
+            {
+                linkLabel_SetInputVideoPath.Invoke(new Action(() => linkLabel_SetInputVideoPath.Text = text));
+            }
+            else
+            {
+                linkLabel_SetInputVideoPath.Text = text;
+            }
+        }
+
+        /// <summary>
         /// 変換元の動画ファイルを設定するボタンの有効/無効を設定する
         /// </summary>
         /// <param name="enabled">有効/無効</param>
@@ -249,10 +313,12 @@ namespace CodecConverter
             if (!string.IsNullOrEmpty(ffmpegPath))
             {
                 SetFFmpegPathButtonVisible(false);
+                SetFFmpegPathLinkLabelVisible(true);
             }
             else
             {
                 SetFFmpegPathButtonVisible(true);
+                SetFFmpegPathLinkLabelVisible(false);
             }
 
             if (!string.IsNullOrEmpty(ffmpegPath))
@@ -262,6 +328,17 @@ namespace CodecConverter
             else
             {
                 SetInputVideoPathButtonEnabled(false);
+            }
+
+            if (!string.IsNullOrEmpty(inputVideoPath))
+            {
+                SetInputVideoPathButtonVisible(false);
+                SetInputVideoPathLinkLabelVisible(true);
+            }
+            else
+            {
+                SetInputVideoPathButtonVisible(true);
+                SetInputVideoPathLinkLabelVisible(false);
             }
 
             if (!string.IsNullOrEmpty(inputVideoPath))
@@ -330,8 +407,13 @@ namespace CodecConverter
                     {
                         return;
                     }
+
                     ffmpegPath = openFileDialog.FileName;
+
+                    UpdateSetFFmpegPathLinkLabel(ffmpegPath);
+
                     SetFFmpegPathButtonVisible(false);
+                    SetFFmpegPathLinkLabelVisible(true);
                 });
             }
         }
@@ -351,6 +433,11 @@ namespace CodecConverter
                 ActionWithLoading(() =>
                 {
                     inputVideoPath = openFileDialog.FileName;
+
+                    UpdateSetInputVideoPathLinkLabel(inputVideoPath);
+
+                    SetInputVideoPathButtonVisible(false);
+                    SetInputVideoPathLinkLabelVisible(true);
 
                     var codec = Converter.GetCodec(ffmpegPath, inputVideoPath);
 
@@ -374,9 +461,9 @@ namespace CodecConverter
                 var codec = comboBox_CodecList.Text;
                 var outputVideoPath = textBox_SetOutputVideoPath.Text;
 
-                var processId = Converter.ConvertWithCodec(ffmpegPath, inputVideoPath, outputVideoPath, codec);
-
                 UpdateConvertStatusLabel("変換中...");
+
+                var processId = Converter.ConvertWithCodec(ffmpegPath, inputVideoPath, outputVideoPath, codec);
 
                 while (!ProcessUtil.IsExited(processId))
                 {
@@ -401,6 +488,8 @@ namespace CodecConverter
 
                 comboBox_CodecList.SelectedIndex = 0;
 
+                UpdateSetFFmpegPathLinkLabel(string.Empty);
+                UpdateSetInputVideoPathLinkLabel(string.Empty);
                 UpdateInputVideoCodecLabel(string.Empty);
                 UpdateSetOutputVideoPathTextBox(string.Empty);
 

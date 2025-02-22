@@ -43,6 +43,8 @@ namespace CodecConverter
             label_SelectCodec = new Label();
             label_SetOutputVideoPath = new Label();
             button_Reset = new Button();
+            linkLabel_SetFFmpegPath = new LinkLabel();
+            linkLabel_SetInputVideoPath = new LinkLabel();
             SuspendLayout();
             // 
             // button_SetFFmpegPath
@@ -154,11 +156,34 @@ namespace CodecConverter
             button_Reset.UseVisualStyleBackColor = true;
             button_Reset.Click += Reset;
             // 
+            // linkLabel_SetFFmpegPath
+            // 
+            linkLabel_SetFFmpegPath.AutoSize = true;
+            linkLabel_SetFFmpegPath.Location = new Point(93, 16);
+            linkLabel_SetFFmpegPath.Name = "linkLabel_SetFFmpegPath";
+            linkLabel_SetFFmpegPath.Size = new Size(0, 15);
+            linkLabel_SetFFmpegPath.TabIndex = 16;
+            linkLabel_SetFFmpegPath.TabStop = true;
+            linkLabel_SetFFmpegPath.LinkClicked += ClickSetFFmpegPathButton;
+            // 
+            // linkLabel_SetInputVideoPath
+            // 
+            linkLabel_SetInputVideoPath.AutoSize = true;
+            linkLabel_SetInputVideoPath.Location = new Point(93, 45);
+            linkLabel_SetInputVideoPath.Name = "linkLabel_SetInputVideoPath";
+            linkLabel_SetInputVideoPath.Size = new Size(60, 15);
+            linkLabel_SetInputVideoPath.TabIndex = 17;
+            linkLabel_SetInputVideoPath.TabStop = true;
+            linkLabel_SetInputVideoPath.Text = "linkLabel_SetInputVideoPath";
+            linkLabel_SetInputVideoPath.LinkClicked += ClickSetInputVideoPathButton;
+            // 
             // CodecConverterForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(678, 450);
+            Controls.Add(linkLabel_SetInputVideoPath);
+            Controls.Add(linkLabel_SetFFmpegPath);
             Controls.Add(label_SetFFmpegPath);
             Controls.Add(button_SetFFmpegPath);
             Controls.Add(label_SetInputVideoPath);
@@ -190,6 +215,11 @@ namespace CodecConverter
         private Button button_SetFFmpegPath;
 
         /// <summary>
+        /// FFmpeg のパスを設定するリンクラベル
+        /// </summary>
+        private LinkLabel linkLabel_SetFFmpegPath;
+
+        /// <summary>
         /// 変換元の動画ファイルを設定するラベル
         /// </summary>
         private Label label_SetInputVideoPath;
@@ -198,6 +228,11 @@ namespace CodecConverter
         /// 変換元の動画ファイルを設定するボタン
         /// </summary>
         private Button button_SetInputVideoPath;
+
+        /// <summary>
+        /// 変換元の動画ファイルを設定するリンクラベル
+        /// </summary>
+        private LinkLabel linkLabel_SetInputVideoPath;
 
         /// <summary>
         /// コーデック選択のラベル
