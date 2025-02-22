@@ -87,7 +87,7 @@ namespace CodecConverter
             // 
             textBox_SetOutputVideoPath.Location = new Point(93, 114);
             textBox_SetOutputVideoPath.Name = "textBox_SetOutputVideoPath";
-            textBox_SetOutputVideoPath.Size = new Size(339, 23);
+            textBox_SetOutputVideoPath.Size = new Size(573, 23);
             textBox_SetOutputVideoPath.TabIndex = 8;
             // 
             // button_Convert
@@ -152,12 +152,13 @@ namespace CodecConverter
             button_Reset.TabIndex = 15;
             button_Reset.Text = "リセット";
             button_Reset.UseVisualStyleBackColor = true;
+            button_Reset.Click += Reset;
             // 
             // CodecConverterForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(678, 450);
             Controls.Add(label_SetFFmpegPath);
             Controls.Add(button_SetFFmpegPath);
             Controls.Add(label_SetInputVideoPath);
@@ -223,8 +224,19 @@ namespace CodecConverter
         /// </summary>
         private TextBox textBox_SetOutputVideoPath;
 
+        /// <summary>
+        /// 変換ボタン
+        /// </summary>
         private Button button_Convert;
+
+        /// <summary>
+        /// 変換状態を表示するラベル
+        /// </summary>
         private Label label_ConvertStatus;
+
+        /// <summary>
+        /// リセットボタン
+        /// </summary>
         private Button button_Reset;
     }
 }

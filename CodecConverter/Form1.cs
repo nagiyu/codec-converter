@@ -42,6 +42,8 @@ namespace CodecConverter
 
                     SetOutputVideoPathTextBoxEnabled(false);
 
+                    SetConvertButtonEnabled(false);
+
                     SetResetButtonEnabled(false);
                 }
                 else
@@ -206,6 +208,22 @@ namespace CodecConverter
         }
 
         /// <summary>
+        /// 変換ボタンの有効/無効を設定する
+        /// </summary>
+        /// <param name="enabled">有効/無効</param>
+        private void SetConvertButtonEnabled(bool enabled)
+        {
+            if (button_Convert.InvokeRequired)
+            {
+                button_Convert.Invoke(new Action(() => button_Convert.Enabled = enabled));
+            }
+            else
+            {
+                button_Convert.Enabled = enabled;
+            }
+        }
+
+        /// <summary>
         /// リセットボタンの有効/無効を設定する
         /// </summary>
         /// <param name="enabled">有効/無効</param>
@@ -228,7 +246,23 @@ namespace CodecConverter
         {
             SetFFmpegPathButtonEnabled(true);
 
-            SetInputVideoPathButtonEnabled(true);
+            if (!string.IsNullOrEmpty(ffmpegPath))
+            {
+                SetFFmpegPathButtonVisible(false);
+            }
+            else
+            {
+                SetFFmpegPathButtonVisible(true);
+            }
+
+            if (!string.IsNullOrEmpty(ffmpegPath))
+            {
+                SetInputVideoPathButtonEnabled(true);
+            }
+            else
+            {
+                SetInputVideoPathButtonEnabled(false);
+            }
 
             if (!string.IsNullOrEmpty(inputVideoPath))
             {
@@ -246,6 +280,15 @@ namespace CodecConverter
             else
             {
                 SetOutputVideoPathTextBoxEnabled(false);
+            }
+
+            if (!string.IsNullOrEmpty(inputVideoPath) && !string.IsNullOrEmpty(ffmpegPath) && !string.IsNullOrEmpty(textBox_SetOutputVideoPath.Text))
+            {
+                SetConvertButtonEnabled(true);
+            }
+            else
+            {
+                SetConvertButtonEnabled(false);
             }
 
             SetResetButtonEnabled(true);
@@ -341,6 +384,27 @@ namespace CodecConverter
                 }
 
                 UpdateConvertStatusLabel(string.Empty);
+            });
+        }
+
+        /// <summary>
+        /// リセットボタンのクリックイベント
+        /// </summary>
+        /// <param name="sender">Sender</param>
+        /// <param name="e">Args</param>
+        private void Reset(object sender, EventArgs e)
+        {
+            ActionWithLoading(() =>
+            {
+                ffmpegPath = string.Empty;
+                inputVideoPath = string.Empty;
+
+                comboBox_CodecList.SelectedIndex = 0;
+
+                UpdateInputVideoCodecLabel(string.Empty);
+                UpdateSetOutputVideoPathTextBox(string.Empty);
+
+                ChangeStatus();
             });
         }
     }
