@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
 using CodecConverter.Service;
 
 namespace CodecConverter.Tests.Services
@@ -9,6 +8,22 @@ namespace CodecConverter.Tests.Services
     public class ConverterTest
     {
         private readonly string ffmpegPath = "C:\\Users\\vboxuser\\Downloads\\ffmpeg-2025-02-17-git-b92577405b-full_build\\ffmpeg-2025-02-17-git-b92577405b-full_build\\bin\\ffmpeg.exe";
+
+        [TestMethod]
+        public void IsFFmpeg_True()
+        {
+            var isFFmpeg = Converter.IsFFmpeg(ffmpegPath);
+
+            Assert.IsTrue(isFFmpeg);
+        }
+
+        [TestMethod]
+        public void IsFFmpeg_False()
+        {
+            var isFFmpeg = Converter.IsFFmpeg("C:\\Users\\vboxuser\\Downloads\\ffmpeg-2025-02-17-git-b92577405b-full_build\\ffmpeg-2025-02-17-git-b92577405b-full_build\\bin\\ffplay.exe");
+
+            Assert.IsFalse(isFFmpeg);
+        }
 
         [TestMethod]
         public void GetCodec()

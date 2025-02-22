@@ -9,6 +9,37 @@ namespace CodecConverter.Service
     public static class Converter
     {
         /// <summary>
+        /// FFmpeg かどうかを判定する
+        /// </summary>
+        /// <param name="ffmpegPath">FFmpeg のパス</param>
+        /// <returns>FFmpeg かどうか</returns>
+        public static bool IsFFmpeg(string ffmpegPath)
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = ffmpegPath,
+                Arguments = "-version",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var process = new Process
+            {
+                StartInfo = startInfo
+            };
+
+            process.Start();
+
+            var output = process.StandardOutput.ReadToEnd();
+
+            process.WaitForExit();
+
+            return output.Contains("ffmpeg");
+        }
+
+        /// <summary>
         /// コーデックを取得する
         /// </summary>
         /// <param name="ffmpegPath">FFmpeg のパス</param>
