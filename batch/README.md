@@ -10,11 +10,27 @@ The batch worker is a Docker container that runs on AWS Batch to perform video t
 
 ```
 batch/
-├── Dockerfile          # Container image with ffmpeg and Node.js runtime
+├── Dockerfile          # Multi-stage container image with ffmpeg and Node.js runtime
 ├── package.json        # Node.js dependencies
+├── tsconfig.json       # TypeScript configuration
 ├── src/
-│   └── worker.js       # Main entry point for batch jobs
+│   └── worker.ts       # Main entry point for batch jobs (TypeScript)
 └── jobs/               # Job definitions and CI helpers (future)
+```
+
+## Development
+
+Build TypeScript locally:
+
+```bash
+npm install
+npm run build
+```
+
+Run locally (after building):
+
+```bash
+npm start
 ```
 
 ## Building

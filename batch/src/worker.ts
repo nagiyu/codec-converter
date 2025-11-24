@@ -18,27 +18,41 @@
  */
 
 // TODO (T019): Import required modules for S3, DynamoDB, and ffmpeg operations
-// const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
-// const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-// const { DynamoDBDocumentClient, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
-// const { spawn } = require('child_process');
-// const fs = require('fs');
-// const path = require('path');
+// import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+// import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+// import { DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+// import { spawn } from 'child_process';
+// import * as fs from 'fs';
+// import * as path from 'path';
+
+interface WorkerEnvironment {
+    INPUT_S3_BUCKET?: string;
+    INPUT_S3_KEY?: string;
+    OUTPUT_S3_BUCKET?: string;
+    OUTPUT_S3_KEY?: string;
+    TARGET_CODEC?: string;
+    JOB_ID?: string;
+    DYNAMODB_TABLE?: string;
+    AWS_REGION?: string;
+}
 
 // Main entry point
-async function main() {
+async function main(): Promise<void> {
     console.log('Batch worker started');
-    console.log('Environment:', {
+    
+    const env: WorkerEnvironment = {
         INPUT_S3_BUCKET: process.env.INPUT_S3_BUCKET,
         INPUT_S3_KEY: process.env.INPUT_S3_KEY,
         OUTPUT_S3_BUCKET: process.env.OUTPUT_S3_BUCKET,
         OUTPUT_S3_KEY: process.env.OUTPUT_S3_KEY,
         TARGET_CODEC: process.env.TARGET_CODEC,
         JOB_ID: process.env.JOB_ID,
-    });
+    };
+    
+    console.log('Environment:', env);
 
     // Validate required environment variables
-    const requiredEnvVars = [
+    const requiredEnvVars: (keyof WorkerEnvironment)[] = [
         'INPUT_S3_BUCKET',
         'INPUT_S3_KEY',
         'OUTPUT_S3_BUCKET',
@@ -67,7 +81,7 @@ async function main() {
 }
 
 // Run main and handle errors
-main().catch(error => {
+main().catch((error: Error) => {
     console.error('Worker failed:', error);
     // TODO: Update DynamoDB with failure status
     process.exit(1);
