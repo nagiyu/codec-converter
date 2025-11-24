@@ -22,6 +22,29 @@ next dev
 
 3. API ルートを使って事前署名付きのアップロード URL を取得し、ステージング用の Batch キューへジョブを送信します。
 
+## ローカル開発（Batch ワーカー）
+
+1. 依存関係をインストールします:
+
+```bash
+cd batch
+npm install
+```
+
+2. TypeScript をビルドします:
+
+```bash
+npm run build
+```
+
+3. ローカルでワーカーを実行します（テスト用）:
+
+```bash
+npm start
+# または開発モード（ts-node）
+npm run dev
+```
+
 ## 本番コンテナのビルド
 
 1. Web コンテナをビルドします:
@@ -31,7 +54,7 @@ cd web/nextjs
 docker build -t codec-converter-web:latest .
 ```
 
-2. バッチワーカー用イメージをビルドします:
+2. バッチワーカー用イメージをビルドします（TypeScript の自動ビルドを含むマルチステージビルド）:
 
 ```bash
 cd batch

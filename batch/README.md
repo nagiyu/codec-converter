@@ -1,49 +1,49 @@
-# Batch Worker - Video Codec Converter
+# Batch Worker - ビデオコーデックコンバータ
 
-This directory contains the AWS Batch worker implementation for video codec conversion.
+このディレクトリには、ビデオコーデック変換用の AWS Batch ワーカー実装が含まれています。
 
-## Overview
+## 概要
 
-The batch worker is a Docker container that runs on AWS Batch to perform video transcoding operations using ffmpeg. It downloads videos from S3, converts them to the target codec, and uploads the results back to S3 while updating job status in DynamoDB.
+Batch ワーカーは AWS Batch 上で実行される Docker コンテナで、ffmpeg を使用してビデオトランスコーディング操作を実行します。S3 からビデオをダウンロードし、ターゲットコーデックに変換し、結果を S3 にアップロードしながら DynamoDB でジョブステータスを更新します。
 
-## Structure
+## 構成
 
 ```
 batch/
-├── Dockerfile          # Multi-stage container image with ffmpeg and Node.js runtime
-├── package.json        # Node.js dependencies
-├── tsconfig.json       # TypeScript configuration
+├── Dockerfile          # ffmpeg と Node.js ランタイムを含むマルチステージコンテナイメージ
+├── package.json        # Node.js 依存関係
+├── tsconfig.json       # TypeScript 設定
 ├── src/
-│   └── worker.ts       # Main entry point for batch jobs (TypeScript)
-└── jobs/               # Job definitions and CI helpers (future)
+│   └── worker.ts       # バッチジョブのメインエントリポイント（TypeScript）
+└── jobs/               # ジョブ定義と CI ヘルパー（将来用）
 ```
 
-## Development
+## 開発
 
-Build TypeScript locally:
+TypeScript をローカルでビルド:
 
 ```bash
 npm install
 npm run build
 ```
 
-Run locally (after building):
+ビルド後にローカルで実行:
 
 ```bash
 npm start
 ```
 
-## Building
+## ビルド
 
-Build the Docker image:
+Docker イメージをビルド:
 
 ```bash
 docker build -t codec-converter-batch:latest .
 ```
 
-## Running Locally
+## ローカル実行
 
-Set required environment variables and run:
+必要な環境変数を設定して実行:
 
 ```bash
 docker run --rm \
@@ -60,28 +60,28 @@ docker run --rm \
   codec-converter-batch:latest
 ```
 
-## Environment Variables
+## 環境変数
 
-Required environment variables for the worker:
+ワーカーに必要な環境変数:
 
-- `INPUT_S3_BUCKET`: Source S3 bucket name
-- `INPUT_S3_KEY`: Source S3 object key
-- `OUTPUT_S3_BUCKET`: Destination S3 bucket name
-- `OUTPUT_S3_KEY`: Destination S3 object key
-- `TARGET_CODEC`: Target video codec (h264, vp9, av1, hevc)
-- `JOB_ID`: Conversion job ID for tracking in DynamoDB
-- `DYNAMODB_TABLE`: DynamoDB table name (default: Entities)
-- `AWS_REGION`: AWS region
+- `INPUT_S3_BUCKET`: ソース S3 バケット名
+- `INPUT_S3_KEY`: ソース S3 オブジェクトキー
+- `OUTPUT_S3_BUCKET`: 出力先 S3 バケット名
+- `OUTPUT_S3_KEY`: 出力先 S3 オブジェクトキー
+- `TARGET_CODEC`: ターゲットビデオコーデック（h264, vp9, av1, hevc）
+- `JOB_ID`: DynamoDB でトラッキングする変換ジョブ ID
+- `DYNAMODB_TABLE`: DynamoDB テーブル名（デフォルト: Entities）
+- `AWS_REGION`: AWS リージョン
 
-## Deployment
+## デプロイ
 
-The image is built and pushed to ECR by the CI/CD pipeline and referenced in AWS Batch job definitions.
+イメージは CI/CD パイプラインによってビルドされ ECR にプッシュされ、AWS Batch ジョブ定義で参照されます。
 
-See `specs/001-video-codec-converter/quickstart.md` for deployment instructions.
+デプロイ手順については `specs/001-video-codec-converter/quickstart.md` を参照してください。
 
-## Implementation Status
+## 実装状況
 
-- [x] Directory structure created (T002)
-- [x] Dockerfile with ffmpeg
-- [x] Entry point script scaffold
-- [ ] Full conversion implementation (T019)
+- [x] ディレクトリ構造の作成（T002）
+- [x] ffmpeg を含む Dockerfile
+- [x] エントリポイントスクリプトのスキャフォールド（TypeScript）
+- [ ] 完全な変換実装（T019）
