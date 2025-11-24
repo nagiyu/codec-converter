@@ -12,7 +12,7 @@ WORKDIR /app
 
 # Copy package.json and install dependencies
 COPY package.json package-lock.json* ./
-RUN npm install --production || npm install --production --legacy-peer-deps || true
+RUN npm install --production || npm install --production --legacy-peer-deps
 
 # Copy application source
 COPY src/ ./src/
