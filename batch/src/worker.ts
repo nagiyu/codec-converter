@@ -26,30 +26,19 @@
 // import * as path from 'path';
 
 interface WorkerEnvironment {
-    INPUT_S3_BUCKET?: string;
-    INPUT_S3_KEY?: string;
-    OUTPUT_S3_BUCKET?: string;
-    OUTPUT_S3_KEY?: string;
-    TARGET_CODEC?: string;
-    JOB_ID?: string;
-    DYNAMODB_TABLE?: string;
-    AWS_REGION?: string;
+    INPUT_S3_BUCKET: string;
+    INPUT_S3_KEY: string;
+    OUTPUT_S3_BUCKET: string;
+    OUTPUT_S3_KEY: string;
+    TARGET_CODEC: string;
+    JOB_ID: string;
+    DYNAMODB_TABLE: string;
+    AWS_REGION: string;
 }
 
 // Main entry point
 async function main(): Promise<void> {
     console.log('Batch worker started');
-    
-    const env: WorkerEnvironment = {
-        INPUT_S3_BUCKET: process.env.INPUT_S3_BUCKET,
-        INPUT_S3_KEY: process.env.INPUT_S3_KEY,
-        OUTPUT_S3_BUCKET: process.env.OUTPUT_S3_BUCKET,
-        OUTPUT_S3_KEY: process.env.OUTPUT_S3_KEY,
-        TARGET_CODEC: process.env.TARGET_CODEC,
-        JOB_ID: process.env.JOB_ID,
-    };
-    
-    console.log('Environment:', env);
 
     // Validate required environment variables
     const requiredEnvVars: (keyof WorkerEnvironment)[] = [
@@ -60,6 +49,7 @@ async function main(): Promise<void> {
         'TARGET_CODEC',
         'JOB_ID',
         'DYNAMODB_TABLE',
+        'AWS_REGION',
     ];
 
     const missingVars = requiredEnvVars.filter(v => !process.env[v]);
@@ -67,6 +57,20 @@ async function main(): Promise<void> {
         console.error('Missing required environment variables:', missingVars);
         process.exit(1);
     }
+
+    // After validation, we know all required environment variables are present
+    const env: WorkerEnvironment = {
+        INPUT_S3_BUCKET: process.env.INPUT_S3_BUCKET!,
+        INPUT_S3_KEY: process.env.INPUT_S3_KEY!,
+        OUTPUT_S3_BUCKET: process.env.OUTPUT_S3_BUCKET!,
+        OUTPUT_S3_KEY: process.env.OUTPUT_S3_KEY!,
+        TARGET_CODEC: process.env.TARGET_CODEC!,
+        JOB_ID: process.env.JOB_ID!,
+        DYNAMODB_TABLE: process.env.DYNAMODB_TABLE!,
+        AWS_REGION: process.env.AWS_REGION!,
+    };
+
+    console.log('Environment:', env);
 
     // TODO: Implement in T019
     // 1. Download video from S3 (INPUT_S3_BUCKET/INPUT_S3_KEY)
