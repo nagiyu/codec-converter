@@ -1,0 +1,27 @@
+{
+  "name": "codec-converter-batch",
+  "version": "0.1.0",
+  "description": "AWS Batch worker for video codec conversion using ffmpeg",
+  "main": "src/worker.js",
+  "scripts": {
+    "start": "node src/worker.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "video",
+    "codec",
+    "conversion",
+    "ffmpeg",
+    "aws-batch"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/lib-dynamodb": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
