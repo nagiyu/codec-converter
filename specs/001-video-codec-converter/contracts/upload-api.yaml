@@ -1,0 +1,124 @@
+openapi: 3.0.3
+info:
+  title: コーデックコンバータ アップロード API
+  version: 0.1.0
+servers:
+  - url: /api
+paths:
+  /presign-upload:
+    post:
+      summary: 動画をアップロードするための事前署名付き S3 PUT URL を作成する
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filename:
+                  type: string
+                contentType:
+                  type: string
+                fileSize:
+                  type: integer
+              required: [filename, contentType]
+      responses:
+        '200':
+          description: 事前署名付きアップロード情報
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uploadUrl:
+                    type: string
+                  s3Key:
+                    type: string
+  /submit-job:
+    post:
+      summary: 変換ジョブを登録する（アップロード後）
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                s3Key:
+                  type: string
+                targetCodec:
+                  type: string
+              required: [s3Key, targetCodec]
+      responses:
+        '202':
+          description: ジョブを受理しました
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+  /jobs/{jobId}:
+    get:
+      summary: ジョブのステータスを取得する
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ジョブステータス
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                  status:
+                    type: string
+                  progress_percent:
+                    type: integer
+                  outputUrl:
+                    type: string
+  /download/{jobId}:
+    get:
+      summary: 変換済み出力をクライアントへストリーミング（プロキシ配信）
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: `Content-Disposition: attachment` を付与したバイナリストリーム
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: ジョブまたは出力が見つかりません
+        '403':
+          description: アクセス禁止（権限なし）
+  /codecs:
+    get:
+      summary: サポートされているターゲットコーデックの一覧を返す
+      responses:
+        '200':
+          description: サポートされているコーデック一覧
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                    name:
+                      type: string
