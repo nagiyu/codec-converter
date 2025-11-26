@@ -1,0 +1,215 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - develop
+  workflow_dispatch:
+
+# Minimal permissions for security
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  # Lint job for Next.js application
+  lint-nextjs:
+    name: Lint Next.js
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web/nextjs
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: './web/nextjs/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+  # Test job for Next.js application
+  test-nextjs:
+    name: Test Next.js
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web/nextjs
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: './web/nextjs/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: |
+          if grep -q '"test"' package.json; then
+            npm test
+          else
+            echo "No test script found in package.json - skipping tests"
+            echo "Note: Add test script to package.json when tests are implemented"
+          fi
+
+  # Build job for Next.js application
+  build-nextjs:
+    name: Build Next.js
+    runs-on: ubuntu-latest
+    needs: [lint-nextjs, test-nextjs]
+    defaults:
+      run:
+        working-directory: ./web/nextjs
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: './web/nextjs/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js application
+        run: npm run build
+
+  # Docker build validation for Next.js (build only, no push)
+  docker-nextjs:
+    name: Docker Build - Next.js
+    runs-on: ubuntu-latest
+    needs: [build-nextjs]
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Check for Dockerfile
+        id: check-dockerfile
+        run: |
+          if [ -f "./web/nextjs/Dockerfile" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Warning: Dockerfile not found at ./web/nextjs/Dockerfile - skipping Docker build"
+          fi
+
+      - name: Build Docker image
+        if: steps.check-dockerfile.outputs.exists == 'true'
+        run: |
+          docker build -t codec-converter-web:test ./web/nextjs
+          echo "✅ Next.js Docker image built successfully"
+          docker images codec-converter-web:test
+
+  # Lint for batch worker
+  lint-batch:
+    name: Lint Batch Worker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check if batch directory exists
+        id: check-batch
+        run: |
+          if [ -d "./batch" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Info: batch/ directory not found - skipping batch linting"
+          fi
+
+      # Placeholder for batch worker linting
+      # Add appropriate steps when batch worker is implemented
+
+  # Docker build validation for batch worker (build only, no push)
+  docker-batch:
+    name: Docker Build - Batch Worker
+    runs-on: ubuntu-latest
+    needs: [lint-batch]
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Check for batch Dockerfile
+        id: check-dockerfile
+        run: |
+          if [ -f "./batch/Dockerfile" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Info: batch/Dockerfile not found - skipping Docker build"
+          fi
+
+      - name: Build Docker image
+        if: steps.check-dockerfile.outputs.exists == 'true'
+        run: |
+          docker build -t codec-converter-batch:test ./batch
+          echo "✅ Batch Docker image built successfully"
+          docker images codec-converter-batch:test
+
+  # Summary job to check overall status
+  ci-summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [lint-nextjs, test-nextjs, build-nextjs, docker-nextjs, lint-batch, docker-batch]
+    if: always()
+
+    steps:
+      - name: Check CI status
+        run: |
+          echo "CI Pipeline Summary:"
+          echo "==================="
+          echo "Lint Next.js: ${{ needs.lint-nextjs.result }}"
+          echo "Test Next.js: ${{ needs.test-nextjs.result }}"
+          echo "Build Next.js: ${{ needs.build-nextjs.result }}"
+          echo "Docker Next.js: ${{ needs.docker-nextjs.result }}"
+          echo "Lint Batch: ${{ needs.lint-batch.result }}"
+          echo "Docker Batch: ${{ needs.docker-batch.result }}"
+
+          # Fail the job if any required job failed
+          if [[ "${{ needs.lint-nextjs.result }}" == "failure" ]] || \
+             [[ "${{ needs.test-nextjs.result }}" == "failure" ]] || \
+             [[ "${{ needs.build-nextjs.result }}" == "failure" ]] || \
+             [[ "${{ needs.docker-nextjs.result }}" == "failure" ]] || \
+             [[ "${{ needs.lint-batch.result }}" == "failure" ]] || \
+             [[ "${{ needs.docker-batch.result }}" == "failure" ]]; then
+            echo "CI Pipeline failed!"
+            exit 1
+          fi
+
+          echo "CI Pipeline passed!"

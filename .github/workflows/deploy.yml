@@ -1,0 +1,158 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  workflow_dispatch:
+
+# Minimal permissions for security
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: 'ap-northeast-1'  # Tokyo region, adjust as needed
+
+jobs:
+  # Docker build and push for Next.js
+  deploy-nextjs:
+    name: Deploy Next.js
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # When ECR push is enabled, add: id-token: write (for OIDC)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Check for Dockerfile
+        id: check-dockerfile
+        run: |
+          if [ -f "./web/nextjs/Dockerfile" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Warning: Dockerfile not found at ./web/nextjs/Dockerfile - skipping deployment"
+          fi
+
+      # Placeholder for AWS ECR login
+      # - name: Configure AWS credentials
+      #   if: steps.check-dockerfile.outputs.exists == 'true'
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ env.AWS_REGION }}
+
+      # - name: Login to Amazon ECR
+      #   if: steps.check-dockerfile.outputs.exists == 'true'
+      #   id: login-ecr
+      #   uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        if: steps.check-dockerfile.outputs.exists == 'true'
+        run: |
+          docker build -t codec-converter-web:${{ github.sha }} ./web/nextjs
+          docker tag codec-converter-web:${{ github.sha }} codec-converter-web:latest
+          echo "Docker image built successfully"
+
+      # Placeholder for ECR push
+      # - name: Push to ECR
+      #   if: steps.check-dockerfile.outputs.exists == 'true'
+      #   env:
+      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #     ECR_REPOSITORY: codec-converter-web
+      #     IMAGE_TAG: ${{ github.sha }}
+      #   run: |
+      #     docker tag codec-converter-web:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      #     docker tag codec-converter-web:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
+      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+  # Docker build and push for batch worker
+  deploy-batch:
+    name: Deploy Batch Worker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # When ECR push is enabled, add: id-token: write (for OIDC)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Check for batch Dockerfile
+        id: check-dockerfile
+        run: |
+          if [ -f "./batch/Dockerfile" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Info: batch/Dockerfile not found - skipping deployment"
+          fi
+
+      # Placeholder for AWS ECR login
+      # - name: Configure AWS credentials
+      #   if: steps.check-dockerfile.outputs.exists == 'true'
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ env.AWS_REGION }}
+
+      # - name: Login to Amazon ECR
+      #   if: steps.check-dockerfile.outputs.exists == 'true'
+      #   id: login-ecr
+      #   uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        if: steps.check-dockerfile.outputs.exists == 'true'
+        run: |
+          docker build -t codec-converter-batch:${{ github.sha }} ./batch
+          docker tag codec-converter-batch:${{ github.sha }} codec-converter-batch:latest
+          echo "Docker image built successfully"
+
+      # Placeholder for ECR push
+      # - name: Push to ECR
+      #   if: steps.check-dockerfile.outputs.exists == 'true'
+      #   env:
+      #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      #     ECR_REPOSITORY: codec-converter-batch
+      #     IMAGE_TAG: ${{ github.sha }}
+      #   run: |
+      #     docker tag codec-converter-batch:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      #     docker tag codec-converter-batch:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
+      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+  # Summary job to check overall status
+  deploy-summary:
+    name: Deploy Summary
+    runs-on: ubuntu-latest
+    needs: [deploy-nextjs, deploy-batch]
+    if: always()
+
+    steps:
+      - name: Check deploy status
+        run: |
+          echo "Deploy Pipeline Summary:"
+          echo "========================"
+          echo "Deploy Next.js: ${{ needs.deploy-nextjs.result }}"
+          echo "Deploy Batch: ${{ needs.deploy-batch.result }}"
+
+          # Fail the job if any deployment job failed
+          if [[ "${{ needs.deploy-nextjs.result }}" == "failure" ]] || \
+             [[ "${{ needs.deploy-batch.result }}" == "failure" ]]; then
+            echo "Deploy Pipeline failed!"
+            exit 1
+          fi
+
+          echo "Deploy Pipeline passed!"
