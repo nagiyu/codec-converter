@@ -29,7 +29,7 @@ description: "ビデオコーデックコンバータ機能のタスク一覧（
     - `web/nextjs/src/app/api/download/[jobId]/route.ts`
     - `web/nextjs/src/app/api/codecs/route.ts`
 
-- [ ] T011 [P] サーバーサイドのダウンロードプロキシ例を追加（`web/nextjs/src/app/api/download/[jobId]/route.ts`、`quickstart.md` にストリーミング案内あり）
+- [x] T011 [P] サーバーサイドのダウンロードプロキシ例を追加（`web/nextjs/src/app/api/download/[jobId]/route.ts`、`quickstart.md` にストリーミング案内あり）
 
 ---
 
