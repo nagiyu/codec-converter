@@ -1,11 +1,10 @@
 name: Batch Docker Build Validation
 
 on:
-  push:
-  # pull_request:
-  #   paths:
-  #     - 'batch/**'
-  #     - '.github/workflows/batch-docker-build.yml'
+  pull_request:
+    paths:
+      - 'batch/**'
+      - '.github/workflows/batch-docker-build.yml'
 
 jobs:
   validate-dockerfile:
