@@ -12,7 +12,7 @@ description: "ビデオコーデックコンバータ機能のタスク一覧（
 - [x] T002 `batch/` のスキャフォールドを作成 (`Dockerfile` と TypeScript の `src/` エントリポイント、GitHub Actions による Docker ビルド検証を含む）（パス: `batch/`）
 - [x] T003 初期の CI ワークフロー骨子を追加（lint/test/build/push）`/.github/workflows/ci.yml`（パス: `.github/workflows/ci.yml`）
 - [x] T004 機能用の `README.md` を追加（クイックスタートの参照を含む）（パス: `specs/001-video-codec-converter/quickstart.md`）
-- [ ] T005 リポジトリルートにリンティング／フォーマット／エディタ設定を追加（`.eslintrc.json`, `.prettierrc`）
+- [x] T005 リポジトリルートにリンティング／フォーマット／エディタ設定を追加（`.eslintrc.json`, `.prettierrc`, `.editorconfig`）
 
 ---
 
