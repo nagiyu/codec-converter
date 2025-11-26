@@ -90,8 +90,10 @@ web/nextjs/                # Next.js アプリ（フロントエンド + サー�
 └── tests/
 
 batch/                     # Batch ワーカーのイメージとジョブ定義
-├── Dockerfile             # ffmpeg とジョブエントリポイントを含むイメージ
-├── src/                   # ジョブで使うヘルパースクリプト（Node/Python 等）
+├── Dockerfile             # ffmpeg とジョブエントリポイントを含むマルチステージイメージ（TypeScript ビルド）
+├── tsconfig.json          # TypeScript 設定
+├── package.json           # Node.js 依存関係と TypeScript ツール
+├── src/                   # TypeScript ソースコード（worker.ts）
 └── jobs/                  # ジョブ定義と ECR プッシュの CI ヘルパー
 
 infra/                     # デプロイ用マニフェスト（SAM/CloudFormation/Terraform）

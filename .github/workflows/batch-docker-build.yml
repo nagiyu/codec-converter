@@ -1,0 +1,30 @@
+name: Batch Docker Build Validation
+
+on:
+  pull_request:
+    paths:
+      - 'batch/**'
+      - '.github/workflows/batch-docker-build.yml'
+
+jobs:
+  validate-dockerfile:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build batch Docker image
+      run: |
+        cd batch
+        docker build -t codec-converter-batch:test .
+    
+    - name: Verify build output
+      run: |
+        echo "✅ Batch Docker image built successfully"
+        docker images codec-converter-batch:test
