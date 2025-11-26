@@ -38,12 +38,14 @@ Pull Request 時に実行される検証ワークフローです。
 develop/master ブランチへのプッシュ時に実行されるデプロイワークフローです。
 
 **実行内容：**
-- CI パイプラインと同じ検証ステップ
-- Docker イメージのビルドと ECR へのプッシュ（設定後に有効化）
+- **deploy-nextjs**: Next.js Docker イメージのビルドと ECR へのプッシュ
+- **deploy-batch**: バッチワーカー Docker イメージのビルドと ECR へのプッシュ
 
 **トリガー条件：**
 - `master`, `develop` ブランチへの push
 - 手動実行（workflow_dispatch）
+
+**注意：** CI パイプラインで検証済みのコードに対してのみデプロイが実行されます。
 
 ### AWS ECR 連携の設定
 
