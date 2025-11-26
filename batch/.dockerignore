@@ -1,0 +1,8 @@
+# Prevent unnecessary files from being added to the Docker image
+node_modules/
+npm-debug.log
+.git
+.gitignore
+*.md
+.DS_Store
+dist/
