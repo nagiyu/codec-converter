@@ -29,6 +29,8 @@ export interface JobStatusResponse {
   progress_percent: number;
   /** URL to download the output file (available when status is 'succeeded') */
   outputUrl?: string;
+  /** Error message if the job failed */
+  error_message?: string;
 }
 
 /** Options for polling job status */

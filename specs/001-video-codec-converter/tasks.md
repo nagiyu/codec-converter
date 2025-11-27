@@ -43,7 +43,7 @@ description: "ビデオコーデックコンバータ機能のタスク一覧（
 - [ ] T013 [US1] `submit-job` を呼び出し `jobs/{jobId}` をポーリングする `JobService` スタブを作成（`web/nextjs/src/lib/services/jobService.ts`）
 - [ ] T014 [US1] ファイルピッカーとコーデック選択を備えたクライアント UI ページを実装（`web/nextjs/src/app/(app)/convert/page.tsx`、パス: `web/nextjs/src/app/convert/page.tsx`）
 - [ ] T015 [US1] `presign-upload` と `submit-job` のルートスタブにサーバー側統合を実装：入力検証と `VideoFile` / `ConversionJob` を DynamoDB に保存（パス: `web/nextjs/src/app/api/*.ts`）
-- [ ] T016 [US1] `ConversionJob` のステータス更新フローを実装：Batch ジョブが進捗を DynamoDB に書き込み、`jobs/{jobId}` がステータスと `outputUrl` を返す（パス: `web/nextjs/src/app/api/jobs/[jobId]/route.ts`）
+- [x] T016 [US1] `ConversionJob` のステータス更新フローを実装：Batch ジョブが進捗を DynamoDB に書き込み、`jobs/{jobId}` がステータスと `outputUrl` を返す（パス: `web/nextjs/src/app/api/jobs/[jobId]/route.ts`）
 - [ ] T017 [US1] `ConversionJob` の状態を確認してから S3 オブジェクトをストリームするダウンロードプロキシエンドポイントを実装（パス: `web/nextjs/src/app/api/download/[jobId]/route.ts`）
 - [ ] T018 [US1] クライアント側の進捗 UI と `jobs/{jobId}` / `download/{jobId}` に紐づくダウンロードボタンを追加（パス: `web/nextjs/src/app/convert/components/Progress.tsx`）
 - [ ] T019 [US1] ffmpeg で変換し DynamoDB を更新する最小限の Batch ワーカ用 `Dockerfile` とエントリポイントスクリプトを作成（パス: `batch/Dockerfile`, `batch/src/worker.js`）
