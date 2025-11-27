@@ -3,14 +3,14 @@
  * Calls `/api/submit-job` to create jobs and `/api/jobs/{jobId}` to poll status.
  */
 
-import type { ConversionJobStatus } from "../models";
+import type { ConversionJobStatus, TargetCodec } from "../models";
 
 /** Request payload for submitting a job */
 export interface SubmitJobRequest {
   /** S3 key of the uploaded video file */
   s3Key: string;
   /** Target codec for conversion */
-  targetCodec: string;
+  targetCodec: TargetCodec;
 }
 
 /** Response from submit-job endpoint */
