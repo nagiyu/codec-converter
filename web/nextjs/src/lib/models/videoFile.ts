@@ -15,14 +15,14 @@ export interface VideoFile {
   s3_key: string;
   /** Container format (e.g., 'mp4', 'webm') */
   container: string;
-  /** Video codec (e.g., 'h264', 'vp9', 'av1') */
-  video_codec: string;
+  /** Video codec (e.g., 'h264', 'vp9', 'av1') - populated after analysis */
+  video_codec?: string;
   /** Audio codec (optional) */
   audio_codec?: string;
-  /** Duration in seconds */
-  duration_seconds: number;
-  /** Resolution (e.g., '1920x1080') */
-  resolution: string;
+  /** Duration in seconds - populated after analysis */
+  duration_seconds?: number;
+  /** Resolution (e.g., '1920x1080') - populated after analysis */
+  resolution?: string;
   /** File size in bytes */
   file_size_bytes: number;
   /** Upload timestamp (ISO 8601) */

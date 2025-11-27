@@ -2,7 +2,7 @@
  * Repository for VideoFile entity operations with DynamoDB.
  */
 
-import { PutCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, GetCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { getDocClient, getTableName } from "./client";
 import type { VideoFile } from "../models/videoFile";
 
@@ -80,8 +80,8 @@ export async function getVideoFileById(id: string): Promise<VideoFile | null> {
 
 /**
  * Get a VideoFile entity by its S3 key.
- * Note: This requires a scan operation since s3_key is not a key attribute.
- * For production, consider adding a GSI on s3_key if this is a common access pattern.
+ * Note: This queries with DataType partition key and filters on s3_key.
+ * For production, consider adding a GSI on s3_key if this becomes a common access pattern.
  * @param s3Key - The S3 key of the video file
  * @returns The VideoFile entity or null if not found
  */
@@ -92,9 +92,7 @@ export async function getVideoFileByS3Key(
   const tableName = getTableName();
 
   // Use Query with DataType partition key and filter on s3_key
-  // This is more efficient than a full table scan
-  const { QueryCommand } = await import("@aws-sdk/lib-dynamodb");
-
+  // This is more efficient than a full table scan but still requires filtering
   const response = await docClient.send(
     new QueryCommand({
       TableName: tableName,

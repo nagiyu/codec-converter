@@ -139,13 +139,9 @@ export async function POST(request: Request): Promise<NextResponse> {
       filename: sanitizedFilename,
       s3_key: s3Key,
       container: getContainerFromContentType(contentType),
-      video_codec: "", // Will be populated after upload and analysis
-      audio_codec: undefined,
-      duration_seconds: 0, // Will be populated after analysis
-      resolution: "", // Will be populated after analysis
+      // video_codec, duration_seconds, resolution will be populated after analysis
       file_size_bytes: fileSize || 0,
       upload_timestamp: new Date().toISOString(),
-      owner_id: undefined, // Could be populated from auth context
       status: "uploaded",
     };
 

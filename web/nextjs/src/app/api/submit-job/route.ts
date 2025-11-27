@@ -99,10 +99,6 @@ export async function POST(request: Request): Promise<NextResponse> {
       status: "queued",
       progress_percent: 0,
       submitted_at: new Date().toISOString(),
-      started_at: undefined,
-      finished_at: undefined,
-      output_s3_key: undefined,
-      error_message: undefined,
     };
 
     await saveConversionJob(conversionJob);
