@@ -1,0 +1,240 @@
+.page {
+  --background: #fafafa;
+  --foreground: #fff;
+
+  --text-primary: #000;
+  --text-secondary: #666;
+
+  --button-primary: #000;
+  --button-primary-hover: #383838;
+  --button-secondary-hover: #f2f2f2;
+  --button-secondary-border: #ebebeb;
+
+  --border-color: #ddd;
+  --border-color-hover: #999;
+
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--background);
+}
+
+.main {
+  display: flex;
+  width: 100%;
+  max-width: 600px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 24px;
+  background-color: var(--foreground);
+  padding: 48px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  text-align: center;
+}
+
+.description {
+  font-size: 16px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin: 0;
+}
+
+.filePicker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px;
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.filePicker:hover {
+  border-color: var(--border-color-hover);
+  background-color: var(--button-secondary-hover);
+}
+
+.filePickerLabel {
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+.filePickerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  background-color: var(--button-primary);
+  color: var(--foreground);
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.filePickerButton:hover {
+  background-color: var(--button-primary-hover);
+}
+
+.fileInput {
+  display: none;
+}
+
+.fileInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background-color: var(--background);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.fileInfoRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.fileInfoLabel {
+  color: var(--text-secondary);
+}
+
+.fileInfoValue {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.codecSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.codecLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.codecSelect {
+  padding: 12px 16px;
+  font-size: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--foreground);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.codecSelect:hover {
+  border-color: var(--border-color-hover);
+}
+
+.codecSelect:focus {
+  outline: none;
+  border-color: var(--button-primary);
+}
+
+.convertButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 24px;
+  background-color: var(--button-primary);
+  color: var(--foreground);
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.convertButton:hover:not(:disabled) {
+  background-color: var(--button-primary-hover);
+}
+
+.convertButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.clearButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.clearButton:hover {
+  background-color: var(--button-secondary-hover);
+  border-color: var(--border-color-hover);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .page {
+    --background: #0a0a0a;
+    --foreground: #1a1a1a;
+
+    --text-primary: #ededed;
+    --text-secondary: #999;
+
+    --button-primary: #ededed;
+    --button-primary-hover: #ccc;
+    --button-secondary-hover: #222;
+    --button-secondary-border: #333;
+
+    --border-color: #333;
+    --border-color-hover: #555;
+  }
+
+  .convertButton,
+  .filePickerButton {
+    color: #000;
+  }
+}
+
+@media (max-width: 600px) {
+  .main {
+    padding: 24px 16px;
+    margin: 16px;
+    border-radius: 6px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .filePicker {
+    padding: 24px;
+  }
+}
