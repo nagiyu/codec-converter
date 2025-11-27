@@ -18,7 +18,7 @@ description: "ビデオコーデックコンバータ機能のタスク一覧（
 
 ## フェーズ 2: 基盤（前提タスク）
 
-- [ ] T006 [P] アップロード／出力用 S3 バケットの CloudFormation テンプレートを作成（`infra/nextjs/s3-buckets.yaml`）（パス: `infra/nextjs/s3-buckets.yaml`）
+- [x] T006 [P] アップロード／出力用 S3 バケットの CloudFormation テンプレートを作成（`infra/nextjs/s3-buckets.yaml`）（パス: `infra/nextjs/s3-buckets.yaml`）
 - [ ] T007 [P] 単一テーブル `Entities` 用の CloudFormation テンプレートを作成（`infra/dynamodb/entities-table.yaml`）（パス: `infra/dynamodb/entities-table.yaml`）
 - [ ] T008 [P] Lambda と Batch 実行ロール用の IAM ポリシー例を実装（`infra/iam/lambda-batch-roles.yaml`）（パス: `infra/iam/lambda-batch-roles.yaml`）
 - [ ] T009 `VideoFile`, `ConversionJob`, `Codec` の基本データモデルを作成（`web/nextjs/src/lib/models/`、ファイル: `videoFile.ts`, `conversionJob.ts`, `codec.ts`）

@@ -1,0 +1,293 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Lambda と Batch 実行ロール用の IAM ポリシー例
+  (Example IAM policies for Lambda and Batch execution roles)
+  
+  このテンプレートは、コーデックコンバータアプリケーションの Lambda 関数と
+  AWS Batch ジョブが使用する IAM ロールとポリシーを定義します。
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: デプロイ環境名
+
+  UploadBucketArn:
+    Type: String
+    Description: "アップロード用 S3 バケットの ARN (例: arn:aws:s3:::my-upload-bucket)"
+
+  OutputBucketArn:
+    Type: String
+    Description: "出力用 S3 バケットの ARN (例: arn:aws:s3:::my-output-bucket)"
+
+  EntitiesTableArn:
+    Type: String
+    Description: DynamoDB Entities テーブルの ARN
+
+  BatchJobQueueArn:
+    Type: String
+    Description: AWS Batch ジョブキューの ARN
+
+  BatchJobDefinitionArn:
+    Type: String
+    Description: AWS Batch ジョブ定義の ARN
+
+Resources:
+  # ============================================================================
+  # Lambda 実行ロール
+  # ============================================================================
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'codec-converter-lambda-role-${Environment}'
+      Description: コーデックコンバータ Lambda 関数の実行ロール
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Tags:
+        - Key: Application
+          Value: codec-converter
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Lambda 用 S3 アクセスポリシー
+  LambdaS3Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub 'codec-converter-lambda-s3-policy-${Environment}'
+      Roles:
+        - !Ref LambdaExecutionRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          # アップロードバケットへの読み取り・書き込み権限
+          # (事前署名 URL 生成とファイル検証のため)
+          - Sid: AllowUploadBucketAccess
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+            Resource:
+              - !Sub '${UploadBucketArn}/*'
+          # 出力バケットへの読み取り権限
+          # (ダウンロードプロキシのため)
+          - Sid: AllowOutputBucketRead
+            Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource:
+              - !Sub '${OutputBucketArn}/*'
+          # バケット一覧取得権限 (オプション)
+          - Sid: AllowBucketList
+            Effect: Allow
+            Action:
+              - s3:ListBucket
+            Resource:
+              - !Ref UploadBucketArn
+              - !Ref OutputBucketArn
+
+  # Lambda 用 DynamoDB アクセスポリシー
+  LambdaDynamoDBPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub 'codec-converter-lambda-dynamodb-policy-${Environment}'
+      Roles:
+        - !Ref LambdaExecutionRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          # Entities テーブルへの CRUD 権限
+          - Sid: AllowDynamoDBAccess
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+              - dynamodb:GetItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+            Resource:
+              - !Ref EntitiesTableArn
+              # GSI へのクエリも許可
+              - !Sub '${EntitiesTableArn}/index/*'
+
+  # Lambda 用 Batch ジョブ送信ポリシー
+  LambdaBatchPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub 'codec-converter-lambda-batch-policy-${Environment}'
+      Roles:
+        - !Ref LambdaExecutionRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          # Batch ジョブの送信権限
+          - Sid: AllowBatchSubmitJob
+            Effect: Allow
+            Action:
+              - batch:SubmitJob
+            Resource:
+              - !Ref BatchJobQueueArn
+              - !Ref BatchJobDefinitionArn
+          # Batch ジョブのステータス確認権限
+          - Sid: AllowBatchDescribeJobs
+            Effect: Allow
+            Action:
+              - batch:DescribeJobs
+            Resource: '*'
+
+  # ============================================================================
+  # Batch タスク実行ロール (ECS タスク用)
+  # ============================================================================
+  BatchTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'codec-converter-batch-execution-role-${Environment}'
+      Description: コーデックコンバータ Batch タスクの ECS 実行ロール
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags:
+        - Key: Application
+          Value: codec-converter
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ============================================================================
+  # Batch ジョブロール (コンテナ内で使用)
+  # ============================================================================
+  BatchJobRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'codec-converter-batch-job-role-${Environment}'
+      Description: コーデックコンバータ Batch ジョブのコンテナ実行ロール
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Tags:
+        - Key: Application
+          Value: codec-converter
+        - Key: Environment
+          Value: !Ref Environment
+
+  # Batch ジョブ用 S3 アクセスポリシー
+  BatchJobS3Policy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub 'codec-converter-batch-s3-policy-${Environment}'
+      Roles:
+        - !Ref BatchJobRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          # アップロードバケットからの入力ファイル読み取り
+          - Sid: AllowUploadBucketRead
+            Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource:
+              - !Sub '${UploadBucketArn}/*'
+          # 出力バケットへの変換結果書き込み
+          - Sid: AllowOutputBucketWrite
+            Effect: Allow
+            Action:
+              - s3:PutObject
+            Resource:
+              - !Sub '${OutputBucketArn}/*'
+          # バケット一覧取得権限
+          - Sid: AllowBucketList
+            Effect: Allow
+            Action:
+              - s3:ListBucket
+            Resource:
+              - !Ref UploadBucketArn
+              - !Ref OutputBucketArn
+
+  # Batch ジョブ用 DynamoDB アクセスポリシー
+  BatchJobDynamoDBPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub 'codec-converter-batch-dynamodb-policy-${Environment}'
+      Roles:
+        - !Ref BatchJobRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          # ジョブステータス更新権限
+          - Sid: AllowDynamoDBUpdate
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:UpdateItem
+            Resource:
+              - !Ref EntitiesTableArn
+
+  # Batch ジョブ用 CloudWatch Logs ポリシー
+  BatchJobLogsPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub 'codec-converter-batch-logs-policy-${Environment}'
+      Roles:
+        - !Ref BatchJobRole
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudWatchLogs
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/batch/*'
+
+Outputs:
+  LambdaExecutionRoleArn:
+    Description: Lambda 実行ロールの ARN
+    Value: !GetAtt LambdaExecutionRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaExecutionRoleArn'
+
+  LambdaExecutionRoleName:
+    Description: Lambda 実行ロールの名前
+    Value: !Ref LambdaExecutionRole
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaExecutionRoleName'
+
+  BatchTaskExecutionRoleArn:
+    Description: Batch タスク実行ロールの ARN
+    Value: !GetAtt BatchTaskExecutionRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-BatchTaskExecutionRoleArn'
+
+  BatchJobRoleArn:
+    Description: Batch ジョブロールの ARN
+    Value: !GetAtt BatchJobRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-BatchJobRoleArn'
+
+  BatchJobRoleName:
+    Description: Batch ジョブロールの名前
+    Value: !Ref BatchJobRole
+    Export:
+      Name: !Sub '${AWS::StackName}-BatchJobRoleName'
