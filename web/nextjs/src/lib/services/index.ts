@@ -9,3 +9,14 @@ export {
   type PresignUploadRequest,
   type PresignUploadResponse,
 } from './uploadService';
+
+export {
+  JobService,
+  submitJob,
+  getJobStatus,
+  pollJobStatus,
+  type SubmitJobRequest,
+  type SubmitJobResponse,
+  type JobStatusResponse,
+  type PollOptions,
+} from "./jobService";
