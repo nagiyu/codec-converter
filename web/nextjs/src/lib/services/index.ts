@@ -3,6 +3,14 @@
  */
 
 export {
+  getPresignedUploadUrl,
+  uploadFileToS3,
+  uploadVideo,
+  type PresignUploadRequest,
+  type PresignUploadResponse,
+} from './uploadService';
+
+export {
   JobService,
   submitJob,
   getJobStatus,
