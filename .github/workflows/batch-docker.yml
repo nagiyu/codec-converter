@@ -1,0 +1,40 @@
+name: Batch Docker Build
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'batch/**'
+      - '.github/workflows/batch-docker.yml'
+  pull_request:
+    branches:
+      - master
+      - develop
+    paths:
+      - 'batch/**'
+      - '.github/workflows/batch-docker.yml'
+  workflow_dispatch:
+
+# Minimal permissions for security
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Batch Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t codec-converter-batch:test ./batch
+          echo "✅ Batch Docker image built successfully"
+          docker images codec-converter-batch:test
