@@ -1,0 +1,190 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #000;
+  margin: 0;
+}
+
+.dismissButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  color: #666;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.dismissButton:hover {
+  background-color: #f2f2f2;
+  color: #000;
+}
+
+.jobInfo {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.jobLabel {
+  color: #666;
+}
+
+.jobId {
+  color: #000;
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.progressContainer {
+  position: relative;
+  height: 12px;
+  background-color: #eee;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progressBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: #0070f3;
+  border-radius: 6px;
+  transition: width 0.3s ease-out;
+}
+
+.progressBarComplete {
+  background-color: #16a34a;
+}
+
+.progressBarFailed {
+  background-color: #dc2626;
+}
+
+.statusRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status {
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+}
+
+.statusComplete {
+  color: #16a34a;
+}
+
+.statusFailed {
+  color: #dc2626;
+}
+
+.percentage {
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+}
+
+.errorMessage {
+  padding: 12px 16px;
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.downloadButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background-color: #16a34a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.downloadButton:hover {
+  background-color: #15803d;
+}
+
+.downloadIcon {
+  flex-shrink: 0;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .container {
+    background-color: #1a1a1a;
+    border-color: #333;
+  }
+
+  .title {
+    color: #ededed;
+  }
+
+  .dismissButton {
+    color: #999;
+  }
+
+  .dismissButton:hover {
+    background-color: #222;
+    color: #ededed;
+  }
+
+  .jobLabel {
+    color: #999;
+  }
+
+  .jobId {
+    color: #ededed;
+  }
+
+  .progressContainer {
+    background-color: #333;
+  }
+
+  .status {
+    color: #999;
+  }
+
+  .percentage {
+    color: #ededed;
+  }
+
+  .errorMessage {
+    background-color: rgba(220, 38, 38, 0.2);
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect, ChangeEvent } from "react";
 import styles from "./page.module.css";
+import { Progress } from "./components";
 
 /** Codec option from API */
 interface CodecOption {
@@ -34,7 +35,7 @@ export default function ConvertPage() {
   const [codecs, setCodecs] = useState<CodecOption[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -109,7 +110,7 @@ export default function ConvertPage() {
 
     setIsLoading(true);
     setError(null);
-    setSuccessMessage(null);
+    setActiveJobId(null);
 
     try {
       // Step 1: Get presigned upload URL
@@ -156,10 +157,8 @@ export default function ConvertPage() {
 
       const { jobId } = await submitResponse.json();
 
-      // Success - display success message in UI
-      setSuccessMessage(
-        `Conversion job submitted successfully! Job ID: ${jobId}. Progress tracking will be available in a future update.`
-      );
+      // Set active job ID to show progress tracking
+      setActiveJobId(jobId);
 
       // Clear the form after successful submission
       handleClearFile();
@@ -200,20 +199,15 @@ export default function ConvertPage() {
           </div>
         )}
 
-        {/* Success display */}
-        {successMessage && (
-          <div
-            role="status"
-            style={{
-              padding: "12px 16px",
-              backgroundColor: "#dcfce7",
-              color: "#16a34a",
-              borderRadius: "6px",
-              fontSize: "14px",
+        {/* Progress tracking for active job */}
+        {activeJobId && (
+          <Progress
+            jobId={activeJobId}
+            onDismiss={() => setActiveJobId(null)}
+            onError={(err) => {
+              console.error("Job error:", err);
             }}
-          >
-            {successMessage}
-          </div>
+          />
         )}
 
         {/* File Picker */}
