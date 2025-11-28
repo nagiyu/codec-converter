@@ -50,6 +50,12 @@ const CODEC_CONFIG: Record<string, { encoder: string; extension: string }> = {
 // Temporary directory for processing
 const WORK_DIR = '/tmp/worker';
 
+// ffmpeg reports time in microseconds
+const MICROSECONDS_PER_SECOND = 1_000_000;
+
+// Progress update interval (percentage) to avoid excessive DynamoDB writes
+const PROGRESS_UPDATE_INTERVAL = 10;
+
 /**
  * Update the job status in DynamoDB
  */
@@ -120,10 +126,15 @@ async function downloadFromS3(
         throw new Error('Empty response body from S3');
     }
 
-    const bodyStream = response.Body as Readable;
-    const writeStream = fs.createWriteStream(localPath);
+    // The AWS SDK v3 returns SdkStream which extends Readable
+    // We need to check if it's a Node.js Readable stream for pipeline
+    const body = response.Body;
+    if (typeof (body as Readable).pipe !== 'function') {
+        throw new Error('S3 response body is not a readable stream');
+    }
 
-    await pipeline(bodyStream, writeStream);
+    const writeStream = fs.createWriteStream(localPath);
+    await pipeline(body as Readable, writeStream);
 
     console.log(`Downloaded to ${localPath}`);
 }
@@ -200,11 +211,11 @@ async function runFfmpeg(
         ffmpeg.stdout.on('data', (data: Buffer) => {
             const output = data.toString();
 
-            // Parse progress from stdout
+            // Parse progress from stdout (ffmpeg reports out_time_ms in microseconds)
             const timeMatch = output.match(/out_time_ms=(\d+)/);
             if (timeMatch && duration > 0 && onProgress) {
-                const currentTimeMs = parseInt(timeMatch[1], 10);
-                const currentTimeSec = currentTimeMs / 1_000_000;
+                const currentTimeMicroseconds = parseInt(timeMatch[1], 10);
+                const currentTimeSec = currentTimeMicroseconds / MICROSECONDS_PER_SECOND;
                 const percent = Math.min(Math.round((currentTimeSec / duration) * 100), 100);
                 onProgress(percent);
             }
@@ -318,8 +329,8 @@ async function main(): Promise<void> {
         // Run ffmpeg conversion with progress updates
         let lastProgressUpdate = 0;
         await runFfmpeg(inputPath, outputPath, env.TARGET_CODEC, async (percent) => {
-            // Only update DynamoDB every 10% to avoid excessive writes
-            if (percent >= lastProgressUpdate + 10 || percent === 100) {
+            // Only update DynamoDB at configured intervals to avoid excessive writes
+            if (percent >= lastProgressUpdate + PROGRESS_UPDATE_INTERVAL || percent === 100) {
                 lastProgressUpdate = percent;
                 try {
                     await updateJobStatus(docClient, env.DYNAMODB_TABLE, env.JOB_ID, 'running', {
