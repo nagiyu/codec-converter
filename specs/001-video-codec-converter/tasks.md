@@ -19,10 +19,10 @@ description: "ビデオコーデックコンバータ機能のタスク一覧（
 ## フェーズ 2: 基盤（前提タスク）
 
 - [x] T006 [P] アップロード／出力用 S3 バケットの CloudFormation テンプレートを作成（`infra/nextjs/s3-buckets.yaml`）（パス: `infra/nextjs/s3-buckets.yaml`）
-- [ ] T007 [P] 単一テーブル `Entities` 用の CloudFormation テンプレートを作成（`infra/dynamodb/entities-table.yaml`）（パス: `infra/dynamodb/entities-table.yaml`）
-- [ ] T008 [P] Lambda と Batch 実行ロール用の IAM ポリシー例を実装（`infra/iam/lambda-batch-roles.yaml`）（パス: `infra/iam/lambda-batch-roles.yaml`）
-- [ ] T009 `VideoFile`, `ConversionJob`, `Codec` の基本データモデルを作成（`web/nextjs/src/lib/models/`、ファイル: `videoFile.ts`, `conversionJob.ts`, `codec.ts`）
-- [ ] T010 `contracts/upload-api.yaml` に対応する Next.js の API ルートスタブを作成：
+- [x] T007 [P] 単一テーブル `Entities` 用の CloudFormation テンプレートを作成（`infra/dynamodb/entities-table.yaml`）（パス: `infra/dynamodb/entities-table.yaml`）
+- [x] T008 [P] Lambda と Batch 実行ロール用の IAM ポリシー例を実装（`infra/iam/lambda-batch-roles.yaml`）（パス: `infra/iam/lambda-batch-roles.yaml`）
+- [x] T009 `VideoFile`, `ConversionJob`, `Codec` の基本データモデルを作成（`web/nextjs/src/lib/models/`、ファイル: `videoFile.ts`, `conversionJob.ts`, `codec.ts`）
+- [x] T010 `contracts/upload-api.yaml` に対応する Next.js の API ルートスタブを作成：
     - `web/nextjs/src/app/api/presign-upload/route.ts`
     - `web/nextjs/src/app/api/submit-job/route.ts`
     - `web/nextjs/src/app/api/jobs/[jobId]/route.ts`
@@ -39,13 +39,13 @@ description: "ビデオコーデックコンバータ機能のタスク一覧（
 
 **独立テスト**：<=100MB のサンプル動画をアップロードし、コーデックとメタデータが表示され、ターゲットコーデックを選択後に変換が成功し再生可能な出力をダウンロードできること。
 
-- [ ] T012 [US1] 事前署名アップロード情報を取得する `UploadService` スタブを作成（`web/nextjs/src/lib/services/uploadService.ts`、`presign-upload` 契約を使用）
-- [ ] T013 [US1] `submit-job` を呼び出し `jobs/{jobId}` をポーリングする `JobService` スタブを作成（`web/nextjs/src/lib/services/jobService.ts`）
-- [ ] T014 [US1] ファイルピッカーとコーデック選択を備えたクライアント UI ページを実装（`web/nextjs/src/app/(app)/convert/page.tsx`、パス: `web/nextjs/src/app/convert/page.tsx`）
-- [ ] T015 [US1] `presign-upload` と `submit-job` のルートスタブにサーバー側統合を実装：入力検証と `VideoFile` / `ConversionJob` を DynamoDB に保存（パス: `web/nextjs/src/app/api/*.ts`）
+- [x] T012 [US1] 事前署名アップロード情報を取得する `UploadService` スタブを作成（`web/nextjs/src/lib/services/uploadService.ts`、`presign-upload` 契約を使用）
+- [x] T013 [US1] `submit-job` を呼び出し `jobs/{jobId}` をポーリングする `JobService` スタブを作成（`web/nextjs/src/lib/services/jobService.ts`）
+- [x] T014 [US1] ファイルピッカーとコーデック選択を備えたクライアント UI ページを実装（`web/nextjs/src/app/(app)/convert/page.tsx`、パス: `web/nextjs/src/app/convert/page.tsx`）
+- [x] T015 [US1] `presign-upload` と `submit-job` のルートスタブにサーバー側統合を実装：入力検証と `VideoFile` / `ConversionJob` を DynamoDB に保存（パス: `web/nextjs/src/app/api/*.ts`）
 - [x] T016 [US1] `ConversionJob` のステータス更新フローを実装：Batch ジョブが進捗を DynamoDB に書き込み、`jobs/{jobId}` がステータスと `outputUrl` を返す（パス: `web/nextjs/src/app/api/jobs/[jobId]/route.ts`）
-- [ ] T017 [US1] `ConversionJob` の状態を確認してから S3 オブジェクトをストリームするダウンロードプロキシエンドポイントを実装（パス: `web/nextjs/src/app/api/download/[jobId]/route.ts`）
-- [ ] T018 [US1] クライアント側の進捗 UI と `jobs/{jobId}` / `download/{jobId}` に紐づくダウンロードボタンを追加（パス: `web/nextjs/src/app/convert/components/Progress.tsx`）
+- [x] T017 [US1] `ConversionJob` の状態を確認してから S3 オブジェクトをストリームするダウンロードプロキシエンドポイントを実装（パス: `web/nextjs/src/app/api/download/[jobId]/route.ts`）
+- [x] T018 [US1] クライアント側の進捗 UI と `jobs/{jobId}` / `download/{jobId}` に紐づくダウンロードボタンを追加（パス: `web/nextjs/src/app/convert/components/Progress.tsx`）
 - [ ] T019 [US1] ffmpeg で変換し DynamoDB を更新する最小限の Batch ワーカ用 `Dockerfile` とエントリポイントスクリプトを作成（パス: `batch/Dockerfile`, `batch/src/worker.js`）
 
 ---
