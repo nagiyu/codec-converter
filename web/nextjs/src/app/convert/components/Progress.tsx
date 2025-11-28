@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import styles from "./Progress.module.css";
 import { getJobStatus, type JobStatusResponse } from "@/lib/services/jobService";
 
@@ -42,6 +42,16 @@ export function Progress({
   const [isPolling, setIsPolling] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Use refs for callbacks to avoid re-running effect when they change
+  const onCompleteRef = useRef(onComplete);
+  const onErrorRef = useRef(onError);
+
+  // Keep refs in sync with props
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+    onErrorRef.current = onError;
+  });
+
   // Set up polling
   useEffect(() => {
     let isMounted = true;
@@ -58,18 +68,18 @@ export function Progress({
         // Stop polling on terminal states
         if (status.status === "succeeded") {
           setIsPolling(false);
-          onComplete?.(status);
+          onCompleteRef.current?.(status);
         } else if (status.status === "failed") {
           setIsPolling(false);
           setError(status.error_message || "Conversion failed");
-          onError?.(new Error(status.error_message || "Conversion failed"));
+          onErrorRef.current?.(new Error(status.error_message || "Conversion failed"));
         }
       } catch (err) {
         if (!isMounted) return;
         console.error("Error polling job status:", err);
         setError(err instanceof Error ? err.message : "Failed to get job status");
         setIsPolling(false);
-        onError?.(err instanceof Error ? err : new Error("Failed to get job status"));
+        onErrorRef.current?.(err instanceof Error ? err : new Error("Failed to get job status"));
       }
     }
 
@@ -83,13 +93,18 @@ export function Progress({
       isMounted = false;
       clearInterval(intervalId);
     };
-  }, [jobId, pollingInterval, isPolling, onComplete, onError]);
+  }, [jobId, pollingInterval, isPolling]);
 
   // Handle download button click
   const handleDownload = useCallback(() => {
     if (jobStatus?.outputUrl) {
-      // Open download in a new window/tab to trigger file download
-      window.location.href = jobStatus.outputUrl;
+      // Use a temporary anchor element to trigger download without navigation
+      const link = document.createElement("a");
+      link.href = jobStatus.outputUrl;
+      link.download = "";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   }, [jobStatus]);
 
