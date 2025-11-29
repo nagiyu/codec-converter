@@ -14,27 +14,6 @@ Parameters:
       - prod
     Description: デプロイ環境名
 
-  UploadBucketArn:
-    Type: String
-    Description: "アップロード用 S3 バケットの ARN (例: arn:aws:s3:::my-upload-bucket)"
-
-  OutputBucketArn:
-    Type: String
-    Description: "出力用 S3 バケットの ARN (例: arn:aws:s3:::my-output-bucket)"
-
-  EntitiesTableArn:
-    Type: String
-    Description: DynamoDB Entities テーブルの ARN
-
-  AWSAccountId:
-    Type: String
-    Description: AWS アカウント ID
-
-  AWSRegion:
-    Type: String
-    Default: ap-northeast-1
-    Description: AWS リージョン
-
 Resources:
   # ============================================================================
   # Batch ワーカー用 IAM ポリシー
@@ -52,25 +31,21 @@ Resources:
             Effect: Allow
             Action:
               - s3:GetObject
-            Resource:
-              - !Sub '${UploadBucketArn}/*'
+            Resource: '*'
 
           # 出力バケットへの変換結果書き込み
           - Sid: AllowOutputBucketWrite
             Effect: Allow
             Action:
               - s3:PutObject
-            Resource:
-              - !Sub '${OutputBucketArn}/*'
+            Resource: '*'
 
           # バケット一覧取得権限
           - Sid: AllowBucketList
             Effect: Allow
             Action:
               - s3:ListBucket
-            Resource:
-              - !Ref UploadBucketArn
-              - !Ref OutputBucketArn
+            Resource: '*'
 
           # DynamoDB ジョブステータス更新権限
           - Sid: AllowDynamoDBUpdate
@@ -78,8 +53,7 @@ Resources:
             Action:
               - dynamodb:GetItem
               - dynamodb:UpdateItem
-            Resource:
-              - !Ref EntitiesTableArn
+            Resource: '*'
 
           # CloudWatch Logs 出力権限
           - Sid: AllowCloudWatchLogs
@@ -88,8 +62,7 @@ Resources:
               - logs:CreateLogGroup
               - logs:CreateLogStream
               - logs:PutLogEvents
-            Resource:
-              - !Sub 'arn:aws:logs:${AWSRegion}:${AWSAccountId}:log-group:/aws/batch/*'
+            Resource: '*'
 
 Outputs:
   BatchWorkerPolicyArn:

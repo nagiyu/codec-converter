@@ -14,23 +14,6 @@ Parameters:
       - prod
     Description: デプロイ環境名
 
-  AWSAccountId:
-    Type: String
-    Description: AWS アカウント ID
-
-  AWSRegion:
-    Type: String
-    Default: ap-northeast-1
-    Description: AWS リージョン
-
-  DeployBucketName:
-    Type: String
-    Default: ''
-    Description: デプロイ用 S3 バケット名 (空の場合はデフォルトのバケット名を使用)
-
-Conditions:
-  UseDefaultBucketName: !Equals [!Ref DeployBucketName, '']
-
 Resources:
   # ============================================================================
   # GitHub Actions 用 IAM ポリシー
@@ -59,8 +42,7 @@ Resources:
               - cloudformation:DescribeChangeSet
               - cloudformation:ExecuteChangeSet
               - cloudformation:DeleteChangeSet
-            Resource:
-              - !Sub 'arn:aws:cloudformation:${AWSRegion}:${AWSAccountId}:stack/codec-converter-*/*'
+            Resource: '*'
 
           # ECR リポジトリ操作権限
           - Sid: AllowECROperations
@@ -82,8 +64,7 @@ Resources:
               - ecr:DescribeRepositories
               - ecr:CreateRepository
               - ecr:TagResource
-            Resource:
-              - !Sub 'arn:aws:ecr:${AWSRegion}:${AWSAccountId}:repository/codec-converter-*'
+            Resource: '*'
 
           # S3 バケット操作権限（CloudFormation テンプレートアップロード用）
           - Sid: AllowS3Operations
@@ -93,23 +74,14 @@ Resources:
               - s3:GetObject
               - s3:DeleteObject
               - s3:ListBucket
-            Resource:
-              - !If
-                - UseDefaultBucketName
-                - !Sub 'arn:aws:s3:::codec-converter-deploy-${Environment}'
-                - !Sub 'arn:aws:s3:::${DeployBucketName}'
-              - !If
-                - UseDefaultBucketName
-                - !Sub 'arn:aws:s3:::codec-converter-deploy-${Environment}/*'
-                - !Sub 'arn:aws:s3:::${DeployBucketName}/*'
+            Resource: '*'
 
           # IAM ロール PassRole 権限（Lambda/Batch 用）
           - Sid: AllowPassRole
             Effect: Allow
             Action:
               - iam:PassRole
-            Resource:
-              - !Sub 'arn:aws:iam::${AWSAccountId}:role/codec-converter-*'
+            Resource: '*'
             Condition:
               StringEquals:
                 iam:PassedToService:
@@ -133,8 +105,7 @@ Resources:
               - lambda:ListVersionsByFunction
               - lambda:AddPermission
               - lambda:RemovePermission
-            Resource:
-              - !Sub 'arn:aws:lambda:${AWSRegion}:${AWSAccountId}:function:codec-converter-*'
+            Resource: '*'
 
           # Batch ジョブ定義更新権限
           - Sid: AllowBatchOperations
@@ -145,8 +116,7 @@ Resources:
               - batch:DescribeJobDefinitions
               - batch:DescribeComputeEnvironments
               - batch:DescribeJobQueues
-            Resource:
-              - !Sub 'arn:aws:batch:${AWSRegion}:${AWSAccountId}:*'
+            Resource: '*'
 
 Outputs:
   GitHubActionsPolicyArn:

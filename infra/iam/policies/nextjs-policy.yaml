@@ -14,35 +14,6 @@ Parameters:
       - prod
     Description: デプロイ環境名
 
-  UploadBucketArn:
-    Type: String
-    Description: "アップロード用 S3 バケットの ARN (例: arn:aws:s3:::my-upload-bucket)"
-
-  OutputBucketArn:
-    Type: String
-    Description: "出力用 S3 バケットの ARN (例: arn:aws:s3:::my-output-bucket)"
-
-  EntitiesTableArn:
-    Type: String
-    Description: DynamoDB Entities テーブルの ARN
-
-  BatchJobQueueArn:
-    Type: String
-    Description: AWS Batch ジョブキューの ARN
-
-  BatchJobDefinitionArn:
-    Type: String
-    Description: AWS Batch ジョブ定義の ARN
-
-  AWSAccountId:
-    Type: String
-    Description: AWS アカウント ID
-
-  AWSRegion:
-    Type: String
-    Default: ap-northeast-1
-    Description: AWS リージョン
-
 Resources:
   # ============================================================================
   # Next.js アプリケーション用 IAM ポリシー
@@ -62,25 +33,21 @@ Resources:
               - s3:GetObject
               - s3:PutObject
               - s3:DeleteObject
-            Resource:
-              - !Sub '${UploadBucketArn}/*'
+            Resource: '*'
 
           # 出力バケットへの読み取り権限（ダウンロード用 presigned URL 生成）
           - Sid: AllowOutputBucketRead
             Effect: Allow
             Action:
               - s3:GetObject
-            Resource:
-              - !Sub '${OutputBucketArn}/*'
+            Resource: '*'
 
           # バケット一覧取得権限
           - Sid: AllowBucketList
             Effect: Allow
             Action:
               - s3:ListBucket
-            Resource:
-              - !Ref UploadBucketArn
-              - !Ref OutputBucketArn
+            Resource: '*'
 
           # DynamoDB テーブルへの CRUD 権限
           - Sid: AllowDynamoDBAccess
@@ -91,27 +58,21 @@ Resources:
               - dynamodb:UpdateItem
               - dynamodb:DeleteItem
               - dynamodb:Query
-            Resource:
-              - !Ref EntitiesTableArn
-              # GSI へのクエリも許可
-              - !Sub '${EntitiesTableArn}/index/*'
+            Resource: '*'
 
           # Batch ジョブの送信権限
           - Sid: AllowBatchSubmitJob
             Effect: Allow
             Action:
               - batch:SubmitJob
-            Resource:
-              - !Ref BatchJobQueueArn
-              - !Ref BatchJobDefinitionArn
+            Resource: '*'
 
           # Batch ジョブのステータス確認権限
           - Sid: AllowBatchDescribeJobs
             Effect: Allow
             Action:
               - batch:DescribeJobs
-            Resource:
-              - !Sub 'arn:aws:batch:${AWSRegion}:${AWSAccountId}:job/*'
+            Resource: '*'
 
 Outputs:
   NextjsPolicyArn:
