@@ -82,6 +82,8 @@ Resources:
               - logs:DescribeLogStreams
               - logs:TagResource
               - logs:UntagResource
+              - logs:DeleteLogGroup
+              - logs:DeleteLogStream
             Resource: '*'
 
           # EC2 権限（VPC / セキュリティグループ / サブネット関連）
