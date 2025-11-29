@@ -163,6 +163,7 @@ Resources:
               - dynamodb:UpdateTimeToLive
               - dynamodb:DescribeTimeToLive
               - dynamodb:UpdateContinuousBackups
+              - dynamodb:DescribeContinuousBackups
             Resource: '*'
 
   # ============================================================================
