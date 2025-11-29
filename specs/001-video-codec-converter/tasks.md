@@ -23,8 +23,8 @@
 
 - [x] T010 DynamoDB 単一テーブル設計を infra/dynamodb/entities-table.yaml に反映: infra/dynamodb/entities-table.yaml
 - [x] T011 S3 バケット定義を infra/s3/buckets.yaml に追加: infra/s3/buckets.yaml
-- [ ] T012 IAM 最小権限ロールのテンプレートを追加: infra/iam/lambda-batch-roles.yaml
-- [ ] T013 CI で Docker イメージをビルドして ECR にプッシュするステップをワークフローに追加: .github/workflows/deploy.yml
+- [x] T012 IAM 最小権限ロールのテンプレートを追加: infra/iam/lambda-batch-roles.yaml
+- [x] T013 CI で Docker イメージをビルドして ECR にプッシュするステップをワークフローに追加: .github/workflows/deploy.yml
 
 ## Phase 3: ユーザーストーリーごとのタスク
 

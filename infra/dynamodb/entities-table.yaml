@@ -28,7 +28,7 @@ Resources:
       TableName: !If
         - UseCustomTableName
         - !Ref TableName
-        - !Sub 'Entities-${Environment}'
+        - !Sub 'Codec-Converter-Entities-${Environment}'
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: DataType
