@@ -197,12 +197,12 @@ Resources:
             Value: !Ref AWS::Region
         # Job parameters can be overridden at job submission
         Command:
-          - 'Ref::jobId'
-          - 'Ref::inputBucket'
-          - 'Ref::inputKey'
-          - 'Ref::outputBucket'
-          - 'Ref::outputKey'
-          - 'Ref::targetCodec'
+          - '${jobId}'
+          - '${inputBucket}'
+          - '${inputKey}'
+          - '${outputBucket}'
+          - '${outputKey}'
+          - '${targetCodec}'
       Parameters:
         jobId: ''
         inputBucket: ''
