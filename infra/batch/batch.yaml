@@ -153,6 +153,7 @@ Resources:
   # ============================================================================
   BatchJobDefinition:
     Type: AWS::Batch::JobDefinition
+    DependsOn: BatchLogGroup
     Properties:
       JobDefinitionName: !Sub 'codec-converter-job-${Environment}'
       Type: container
