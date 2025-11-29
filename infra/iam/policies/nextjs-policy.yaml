@@ -1,0 +1,123 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Next.js アプリケーション用 IAM ポリシー
+  (IAM policy for Next.js application)
+
+  このポリシーは Next.js API が S3 の事前署名 URL 生成、DynamoDB へのアクセス、
+  AWS Batch ジョブの送信を行うために必要な最小限の権限を定義します。
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: デプロイ環境名
+
+  UploadBucketArn:
+    Type: String
+    Description: "アップロード用 S3 バケットの ARN (例: arn:aws:s3:::my-upload-bucket)"
+
+  OutputBucketArn:
+    Type: String
+    Description: "出力用 S3 バケットの ARN (例: arn:aws:s3:::my-output-bucket)"
+
+  EntitiesTableArn:
+    Type: String
+    Description: DynamoDB Entities テーブルの ARN
+
+  BatchJobQueueArn:
+    Type: String
+    Description: AWS Batch ジョブキューの ARN
+
+  BatchJobDefinitionArn:
+    Type: String
+    Description: AWS Batch ジョブ定義の ARN
+
+  AWSAccountId:
+    Type: String
+    Description: AWS アカウント ID
+
+  AWSRegion:
+    Type: String
+    Default: ap-northeast-1
+    Description: AWS リージョン
+
+Resources:
+  # ============================================================================
+  # Next.js アプリケーション用 IAM ポリシー
+  # ============================================================================
+  NextjsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub 'codec-converter-nextjs-policy-${Environment}'
+      Description: Next.js アプリケーション用の最小権限ポリシー
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          # S3 バケットへのアクセス権限（事前署名 URL 生成用）
+          - Sid: AllowUploadBucketAccess
+            Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+            Resource:
+              - !Sub '${UploadBucketArn}/*'
+
+          # 出力バケットへの読み取り権限（ダウンロード用 presigned URL 生成）
+          - Sid: AllowOutputBucketRead
+            Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource:
+              - !Sub '${OutputBucketArn}/*'
+
+          # バケット一覧取得権限
+          - Sid: AllowBucketList
+            Effect: Allow
+            Action:
+              - s3:ListBucket
+            Resource:
+              - !Ref UploadBucketArn
+              - !Ref OutputBucketArn
+
+          # DynamoDB テーブルへの CRUD 権限
+          - Sid: AllowDynamoDBAccess
+            Effect: Allow
+            Action:
+              - dynamodb:PutItem
+              - dynamodb:GetItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+              - dynamodb:Query
+            Resource:
+              - !Ref EntitiesTableArn
+              # GSI へのクエリも許可
+              - !Sub '${EntitiesTableArn}/index/*'
+
+          # Batch ジョブの送信権限
+          - Sid: AllowBatchSubmitJob
+            Effect: Allow
+            Action:
+              - batch:SubmitJob
+            Resource:
+              - !Ref BatchJobQueueArn
+              - !Ref BatchJobDefinitionArn
+
+          # Batch ジョブのステータス確認権限
+          - Sid: AllowBatchDescribeJobs
+            Effect: Allow
+            Action:
+              - batch:DescribeJobs
+            Resource:
+              - !Sub 'arn:aws:batch:${AWSRegion}:${AWSAccountId}:job/*'
+
+Outputs:
+  NextjsPolicyArn:
+    Description: Next.js ポリシーの ARN
+    Value: !Ref NextjsPolicy
+    Export:
+      Name: !Sub '${AWS::StackName}-NextjsPolicyArn'
