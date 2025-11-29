@@ -399,8 +399,8 @@ Visual Studio Code の DevContainer を使用すると、開発環境を簡単�
 2. リポジトリを開き、コマンドパレット（`F1`）から `Dev Containers: Reopen in Container` を選択
 
 3. Web 開発用の DevContainer には以下が含まれます：
-   - Node.js 22
-   - AWS CLI
+    - Node.js 22
+    - AWS CLI
 
 ### DevContainer の構成
 
