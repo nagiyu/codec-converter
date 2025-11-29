@@ -8,7 +8,7 @@
 
 - [x] T001 IAM ポリシーを作成（GitHub Actions 用 / Next.js 用 / Batch 用）: infra/iam/policies/
 - [x] T002 GitHub Actions 用の IAM ユーザーを作成（アクセスキー生成・Secret 出力）: infra/iam/github-actions-user.yaml
-- [ ] T003 ローカル開発用 IAM ユーザー（Next.js）を作成（アクセスキー生成）: infra/iam/dev-nextjs-user.yaml
+- [x] T003 ローカル開発用 IAM ユーザー（Next.js）を作成（アクセスキー生成）: infra/iam/dev-nextjs-user.yaml
 - [ ] T004 ローカル開発用 IAM ユーザー（Batch ワーカー）を作成（アクセスキー生成）: infra/iam/dev-batch-user.yaml
 
 ## Phase 1: Setup (最小限のリソース作成)
