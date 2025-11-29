@@ -10,7 +10,6 @@ Parameters:
     Default: dev
     AllowedValues:
       - dev
-      - staging
       - prod
     Description: Environment name for resource naming
 
@@ -97,7 +96,7 @@ Resources:
   EntitiesTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub 'Entities-${Environment}'
+      TableName: !Sub 'Codec-Converter-Entities-${Environment}'
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: DataType
