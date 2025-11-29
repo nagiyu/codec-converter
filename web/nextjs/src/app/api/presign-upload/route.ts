@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { saveVideoFile } from "@/lib/dynamodb";
-import { generatePresignedUploadUrl } from "@/lib/s3";
+import { generatePresignedUploadUrl, getPresignedUrlExpiration } from "@/lib/s3";
 import type { VideoFile } from "@/lib/models/videoFile";
 
 /** Supported video content types */
@@ -61,6 +61,7 @@ function getContainerFromContentType(contentType: string): string {
  *   - uploadUrl: string (presigned S3 PUT URL)
  *   - s3Key: string (S3 object key)
  *   - videoFileId: string (UUID of the created VideoFile entity)
+ *   - expiresIn: number (TTL in seconds for the presigned URL)
  */
 export async function POST(request: Request): Promise<NextResponse> {
   try {
@@ -147,11 +148,15 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     await saveVideoFile(videoFile);
 
+    // Get TTL (expiresIn) for the presigned URL in seconds
+    const expiresIn = getPresignedUrlExpiration();
+
     return NextResponse.json(
       {
         uploadUrl,
         s3Key,
         videoFileId,
+        expiresIn,
       },
       { status: 200 }
     );
