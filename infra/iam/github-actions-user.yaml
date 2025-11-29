@@ -80,6 +80,8 @@ Resources:
               - logs:PutLogEvents
               - logs:DescribeLogGroups
               - logs:DescribeLogStreams
+              - logs:TagResource
+              - logs:UntagResource
             Resource: '*'
 
           # EC2 権限（VPC / セキュリティグループ / サブネット関連）
