@@ -42,6 +42,7 @@ Resources:
               - cloudformation:DescribeChangeSet
               - cloudformation:ExecuteChangeSet
               - cloudformation:DeleteChangeSet
+              - cloudformation:GetTemplateSummary
             Resource: '*'
 
           # ECR リポジトリ操作権限
