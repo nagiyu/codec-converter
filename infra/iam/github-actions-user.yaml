@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  IAM user for GitHub Actions CI/CD.
+
+  This template creates an IAM user for GitHub Actions to deploy resources.
+  Access keys should be created manually via AWS Console and stored as
+  GitHub Secrets.
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+    Description: デプロイ環境名
+
+  GitHubActionsPolicyArn:
+    Type: String
+    Description: >
+      GitHub Actions ポリシーの ARN
+      (policies/github-actions-policy.yaml からエクスポートされた値を使用)
+
+Resources:
+  # ============================================================================
+  # GitHub Actions 用 IAM ユーザー
+  # ============================================================================
+  GitHubActionsUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: !Sub 'codec-converter-github-actions-${Environment}'
+      ManagedPolicyArns:
+        - !Ref GitHubActionsPolicyArn
+      Tags:
+        - Key: Application
+          Value: codec-converter
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: GitHub Actions CI/CD
+
+Outputs:
+  GitHubActionsUserName:
+    Description: GitHub Actions ユーザーの名前
+    Value: !Ref GitHubActionsUser
+    Export:
+      Name: !Sub '${AWS::StackName}-GitHubActionsUserName'
+
+  GitHubActionsUserArn:
+    Description: GitHub Actions ユーザーの ARN
+    Value: !GetAtt GitHubActionsUser.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-GitHubActionsUserArn'
