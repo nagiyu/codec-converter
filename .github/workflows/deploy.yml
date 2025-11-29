@@ -311,6 +311,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Validate ECR URI
+        run: |
+          if [ -z "${{ needs.deploy-ecr.outputs.batch_repo_uri }}" ]; then
+            echo "ERROR: batch_repo_uri is empty. Aborting deployment." >&2
+            exit 1
+          fi
+
       - name: Deploy Batch CFN
         run: |
           aws cloudformation deploy \
