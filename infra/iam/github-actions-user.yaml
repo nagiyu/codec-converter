@@ -60,7 +60,6 @@ Resources:
               - ecr:GetLifecyclePolicy
               - ecr:DeleteLifecyclePolicy
               - ecr:ListImages
-              - ecr:DeleteImage
             Resource: '*'
 
           # ECR リポジトリポリシー操作（必要に応じてリポジトリポリシーを設定）
@@ -114,6 +113,8 @@ Resources:
               - batch:UpdateJobQueue
               - batch:RegisterJobDefinition
               - batch:DeregisterJobDefinition
+              - batch:TagResource
+              - batch:UntagResource
             Resource: '*'
 
           # サービスリンクドロール作成（Batch/ECS による自動作成を許可）
@@ -187,7 +188,6 @@ Resources:
               - iam:ListGroupPolicies
               - iam:GetGroupPolicy
               - iam:TagRole
-              - iam:TagGroup
             Resource: '*'
 
           # IAM ロール PassRole 権限（Lambda/Batch 用）
