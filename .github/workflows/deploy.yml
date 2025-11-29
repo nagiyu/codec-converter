@@ -12,9 +12,6 @@ on:
 permissions:
   contents: read
 
-env:
-  AWS_REGION: 'ap-northeast-1'  # Tokyo region, adjust as needed
-
 jobs:
   # Determine deployment environment based on branch
   setup:
@@ -50,7 +47,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Deploy GitHub Actions Policy
         run: |
@@ -97,7 +94,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Get GitHub Actions Policy ARN
         id: github-actions-policy
@@ -192,7 +189,7 @@ jobs:
       #   with:
       #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ env.AWS_REGION }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
 
       # - name: Login to Amazon ECR
       #   if: steps.check-dockerfile.outputs.exists == 'true'
@@ -252,7 +249,7 @@ jobs:
       #   with:
       #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ env.AWS_REGION }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
 
       # - name: Login to Amazon ECR
       #   if: steps.check-dockerfile.outputs.exists == 'true'
