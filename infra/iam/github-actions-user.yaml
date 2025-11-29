@@ -169,6 +169,19 @@ Resources:
               - iam:DetachUserPolicy
               - iam:PutUserPolicy
               - iam:TagUser
+              - iam:GetRole
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:ListRolePolicies
+              - iam:ListUserPolicies
+              - iam:GetRolePolicy
+              - iam:GetUserPolicy
+              - iam:GetAccessKeyLastUsed
+              - iam:ListUsers
+              - iam:ListGroups
+              - iam:GetGroup
+              - iam:ListGroupPolicies
+              - iam:GetGroupPolicy
             Resource: '*'
 
           # IAM ロール PassRole 権限（Lambda/Batch 用）
