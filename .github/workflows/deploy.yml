@@ -329,6 +329,12 @@ jobs:
 
       - name: Deploy Batch CFN
         run: |
+          # Resolve S3 and DynamoDB outputs to pass as parameters to Batch template
+          STACK_S3=codec-converter-s3-buckets-${{ needs.setup.outputs.environment }}
+          UPLOAD_BUCKET=$(aws cloudformation describe-stacks --stack-name $STACK_S3 --query "Stacks[0].Outputs[?OutputKey=='UploadBucketName'].OutputValue" --output text || echo "")
+          OUTPUT_BUCKET=$(aws cloudformation describe-stacks --stack-name $STACK_S3 --query "Stacks[0].Outputs[?OutputKey=='OutputBucketName'].OutputValue" --output text || echo "")
+          STACK_DDB=codec-converter-dynamodb-entities-${{ needs.setup.outputs.environment }}
+          DDB_TABLE=$(aws cloudformation describe-stacks --stack-name $STACK_DDB --query "Stacks[0].Outputs[?OutputKey=='TableName'].OutputValue" --output text || echo "")
           aws cloudformation deploy \
             --template-file infra/batch/batch.yaml \
             --stack-name codec-converter-batch-${{ needs.setup.outputs.environment }} \
@@ -340,6 +346,9 @@ jobs:
               VpcId=${{ secrets.VPC_ID }} \
               SubnetIds=${{ secrets.SUBNET_IDS }} \
               ImageTag=${{ github.sha }} \
+              InputS3Bucket=$UPLOAD_BUCKET \
+              OutputS3Bucket=$OUTPUT_BUCKET \
+              DynamoDBTable=$DDB_TABLE \
             --no-fail-on-empty-changeset
 
   # Docker build and push for Next.js

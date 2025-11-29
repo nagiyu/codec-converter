@@ -71,6 +71,21 @@ Parameters:
     MaxValue: 3600
     Description: Job timeout in seconds
 
+  InputS3Bucket:
+    Type: String
+    Default: ''
+    Description: Optional S3 upload bucket name (can be overridden via parameters)
+
+  OutputS3Bucket:
+    Type: String
+    Default: ''
+    Description: Optional S3 output bucket name (can be overridden via parameters)
+
+  DynamoDBTable:
+    Type: String
+    Default: ''
+    Description: Optional DynamoDB table name (can be overridden via parameters)
+
 Resources:
   # ============================================================================
   # Security Group for Batch Compute Environment
@@ -195,21 +210,12 @@ Resources:
             Value: !Ref Environment
           - Name: AWS_REGION
             Value: !Ref AWS::Region
-        # Job parameters can be overridden at job submission
-        Command:
-          - '${jobId}'
-          - '${inputBucket}'
-          - '${inputKey}'
-          - '${outputBucket}'
-          - '${outputKey}'
-          - '${targetCodec}'
-      Parameters:
-        jobId: ''
-        inputBucket: ''
-        inputKey: ''
-        outputBucket: ''
-        outputKey: ''
-        targetCodec: h264
+          - Name: INPUT_S3_BUCKET
+            Value: !Ref InputS3Bucket
+          - Name: OUTPUT_S3_BUCKET
+            Value: !Ref OutputS3Bucket
+          - Name: DYNAMODB_TABLE
+            Value: !Ref DynamoDBTable
       Tags:
         Project: codec-converter
         Environment: !Ref Environment
