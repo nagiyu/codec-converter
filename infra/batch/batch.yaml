@@ -1,0 +1,317 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: |
+  AWS Batch リソースの CloudFormation テンプレート
+  動画コーデック変換ワーカー用の Compute Environment、Job Queue、Job Definition を定義
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: デプロイ環境名
+
+  BatchJobRoleArn:
+    Type: String
+    Description: Batch ジョブが使用する IAM ロールの ARN
+
+  BatchTaskExecutionRoleArn:
+    Type: String
+    Description: Batch タスク実行ロールの ARN
+
+  MaxvCpus:
+    Type: Number
+    Default: 16
+    MinValue: 1
+    MaxValue: 256
+    Description: Compute Environment の最大 vCPU 数
+
+  JobMemory:
+    Type: Number
+    Default: 4096
+    AllowedValues:
+      - 1024
+      - 2048
+      - 4096
+      - 8192
+      - 16384
+    Description: ジョブに割り当てるメモリ (MiB)
+
+  JobVcpus:
+    Type: Number
+    Default: 2
+    AllowedValues:
+      - 1
+      - 2
+      - 4
+    Description: ジョブに割り当てる vCPU 数
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Batch Compute Environment を配置する VPC の ID
+
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Batch Compute Environment を配置するサブネット ID のリスト
+
+  EcrRepositoryUri:
+    Type: String
+    Default: ''
+    Description: ECR リポジトリの URI (空の場合は新規作成)
+
+  ImageTag:
+    Type: String
+    Default: latest
+    Description: 使用する Docker イメージのタグ
+
+  JobTimeoutSeconds:
+    Type: Number
+    Default: 600
+    MinValue: 60
+    MaxValue: 3600
+    Description: ジョブのタイムアウト時間 (秒)
+
+Conditions:
+  CreateEcrRepository: !Equals [!Ref EcrRepositoryUri, '']
+
+Resources:
+  # ============================================================================
+  # ECR Repository
+  # ============================================================================
+  EcrRepository:
+    Type: AWS::ECR::Repository
+    Condition: CreateEcrRepository
+    Properties:
+      RepositoryName: !Sub 'codec-converter-batch-${Environment}'
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      ImageTagMutability: MUTABLE
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep only last 10 images",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 10
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+      Tags:
+        - Key: Project
+          Value: codec-converter
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  # ============================================================================
+  # Security Group for Batch Compute Environment
+  # ============================================================================
+  BatchSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub 'codec-converter-batch-sg-${Environment}'
+      GroupDescription: Security group for Batch Compute Environment
+      VpcId: !Ref VpcId
+      # 外部通信 (S3, DynamoDB, ECR) のためのアウトバウンドルール
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: Allow HTTPS outbound for AWS services
+      Tags:
+        - Key: Name
+          Value: !Sub 'codec-converter-batch-sg-${Environment}'
+        - Key: Project
+          Value: codec-converter
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ============================================================================
+  # Batch Compute Environment (Fargate)
+  # ============================================================================
+  BatchComputeEnvironment:
+    Type: AWS::Batch::ComputeEnvironment
+    Properties:
+      ComputeEnvironmentName: !Sub 'codec-converter-compute-${Environment}'
+      Type: MANAGED
+      State: ENABLED
+      ComputeResources:
+        Type: FARGATE
+        MaxvCpus: !Ref MaxvCpus
+        Subnets: !Ref SubnetIds
+        SecurityGroupIds:
+          - !Ref BatchSecurityGroup
+      Tags:
+        Project: codec-converter
+        Environment: !Ref Environment
+        ManagedBy: CloudFormation
+
+  # ============================================================================
+  # Batch Job Queue
+  # ============================================================================
+  BatchJobQueue:
+    Type: AWS::Batch::JobQueue
+    Properties:
+      JobQueueName: !Sub 'codec-converter-queue-${Environment}'
+      Priority: 1
+      State: ENABLED
+      ComputeEnvironmentOrder:
+        - Order: 1
+          ComputeEnvironment: !Ref BatchComputeEnvironment
+      Tags:
+        Project: codec-converter
+        Environment: !Ref Environment
+        ManagedBy: CloudFormation
+
+  # ============================================================================
+  # CloudWatch Log Group for Batch Jobs
+  # ============================================================================
+  BatchLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/batch/codec-converter-${Environment}'
+      RetentionInDays: 30
+      Tags:
+        - Key: Project
+          Value: codec-converter
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ============================================================================
+  # Batch Job Definition
+  # ============================================================================
+  BatchJobDefinition:
+    Type: AWS::Batch::JobDefinition
+    Properties:
+      JobDefinitionName: !Sub 'codec-converter-job-${Environment}'
+      Type: container
+      PlatformCapabilities:
+        - FARGATE
+      Timeout:
+        AttemptDurationSeconds: !Ref JobTimeoutSeconds
+      RetryStrategy:
+        Attempts: 2
+        EvaluateOnExit:
+          - OnStatusReason: 'Host EC2*'
+            Action: RETRY
+          - OnReason: '*error*'
+            Action: EXIT
+      ContainerProperties:
+        Image: !If
+          - CreateEcrRepository
+          - !Sub '${EcrRepository.RepositoryUri}:${ImageTag}'
+          - !Sub '${EcrRepositoryUri}:${ImageTag}'
+        JobRoleArn: !Ref BatchJobRoleArn
+        ExecutionRoleArn: !Ref BatchTaskExecutionRoleArn
+        ResourceRequirements:
+          - Type: VCPU
+            Value: !Sub '${JobVcpus}'
+          - Type: MEMORY
+            Value: !Sub '${JobMemory}'
+        NetworkConfiguration:
+          AssignPublicIp: ENABLED
+        FargatePlatformConfiguration:
+          PlatformVersion: LATEST
+        LogConfiguration:
+          LogDriver: awslogs
+          Options:
+            awslogs-group: !Ref BatchLogGroup
+            awslogs-region: !Ref AWS::Region
+            awslogs-stream-prefix: batch
+        Environment:
+          - Name: ENVIRONMENT
+            Value: !Ref Environment
+          - Name: AWS_REGION
+            Value: !Ref AWS::Region
+        # ジョブパラメータはジョブ送信時に上書き可能
+        Command:
+          - 'Ref::jobId'
+          - 'Ref::inputBucket'
+          - 'Ref::inputKey'
+          - 'Ref::outputBucket'
+          - 'Ref::outputKey'
+          - 'Ref::targetCodec'
+      Parameters:
+        jobId: ''
+        inputBucket: ''
+        inputKey: ''
+        outputBucket: ''
+        outputKey: ''
+        targetCodec: h264
+      Tags:
+        Project: codec-converter
+        Environment: !Ref Environment
+        ManagedBy: CloudFormation
+
+Outputs:
+  EcrRepositoryUri:
+    Description: ECR リポジトリの URI
+    Value: !If
+      - CreateEcrRepository
+      - !GetAtt EcrRepository.RepositoryUri
+      - !Ref EcrRepositoryUri
+    Export:
+      Name: !Sub '${AWS::StackName}-EcrRepositoryUri'
+
+  EcrRepositoryArn:
+    Condition: CreateEcrRepository
+    Description: ECR リポジトリの ARN
+    Value: !GetAtt EcrRepository.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-EcrRepositoryArn'
+
+  BatchSecurityGroupId:
+    Description: Batch Compute Environment のセキュリティグループ ID
+    Value: !Ref BatchSecurityGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-BatchSecurityGroupId'
+
+  ComputeEnvironmentArn:
+    Description: Batch Compute Environment の ARN
+    Value: !Ref BatchComputeEnvironment
+    Export:
+      Name: !Sub '${AWS::StackName}-ComputeEnvironmentArn'
+
+  JobQueueArn:
+    Description: Batch Job Queue の ARN
+    Value: !Ref BatchJobQueue
+    Export:
+      Name: !Sub '${AWS::StackName}-JobQueueArn'
+
+  JobQueueName:
+    Description: Batch Job Queue の名前
+    Value: !Sub 'codec-converter-queue-${Environment}'
+    Export:
+      Name: !Sub '${AWS::StackName}-JobQueueName'
+
+  JobDefinitionArn:
+    Description: Batch Job Definition の ARN
+    Value: !Ref BatchJobDefinition
+    Export:
+      Name: !Sub '${AWS::StackName}-JobDefinitionArn'
+
+  JobDefinitionName:
+    Description: Batch Job Definition の名前
+    Value: !Sub 'codec-converter-job-${Environment}'
+    Export:
+      Name: !Sub '${AWS::StackName}-JobDefinitionName'
+
+  BatchLogGroupName:
+    Description: Batch ジョブ用 CloudWatch Log Group の名前
+    Value: !Ref BatchLogGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-BatchLogGroupName'
