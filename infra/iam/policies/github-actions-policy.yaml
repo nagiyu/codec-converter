@@ -92,6 +92,10 @@ Resources:
               - iam:ListAccessKeys
               - iam:CreateAccessKey
               - iam:DeleteAccessKey
+              - iam:ListPolicyVersions
+              - iam:CreatePolicyVersion
+              - iam:SetDefaultPolicyVersion
+              - iam:DeletePolicyVersion
             Resource: '*'
 
           # IAM ロール PassRole 権限（Lambda/Batch 用）
