@@ -295,7 +295,7 @@ jobs:
   deploy-batch-stack:
     name: Deploy Batch Stack
     runs-on: ubuntu-latest
-    needs: [setup, deploy-ecr, deploy-iam-roles]
+    needs: [setup, deploy-ecr, deploy-iam-roles, deploy-batch]
     permissions:
       contents: read
       id-token: write
@@ -336,7 +336,7 @@ jobs:
               Environment=${{ needs.setup.outputs.environment }} \
               BatchJobRoleArn=${{ needs.deploy-iam-roles.outputs.batch_job_role_arn }} \
               BatchTaskExecutionRoleArn=${{ needs.deploy-iam-roles.outputs.batch_task_execution_role_arn }} \
-              EcrRepositoryUri=${{ needs.deploy-ecr.outputs.batch_repo_uri }} \
+              EcrRepositoryUri=${{ steps.resolve-ecr-uri.outputs.batch_repo_uri }} \
               VpcId=${{ secrets.VPC_ID }} \
               SubnetIds=${{ secrets.SUBNET_IDS }} \
               ImageTag=${{ github.sha }} \
@@ -428,8 +428,8 @@ jobs:
               Environment=${{ needs.setup.outputs.environment }} \
               ImageUri=$IMAGE_URI \
               NextjsPolicyArn=$NEXTJS_POLICY_ARN \
-              AWS_BATCH_JOB_QUEUE=${{ steps.batch-outputs.outputs.batch_job_queue }} \
-              AWS_BATCH_JOB_DEFINITION=${{ steps.batch-outputs.outputs.batch_job_definition }} \
+              BatchJobQueue=${{ steps.batch-outputs.outputs.batch_job_queue }} \
+              BatchJobDefinition=${{ steps.batch-outputs.outputs.batch_job_definition }} \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
 
