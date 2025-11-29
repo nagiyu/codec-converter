@@ -97,9 +97,6 @@ jobs:
 
       - name: Get ECR Outputs
         id: ecr-outputs
-        outputs:
-          web_repo_uri: ${{ steps.get-ecr-outputs.outputs.web_repo_uri }}
-          batch_repo_uri: ${{ steps.get-ecr-outputs.outputs.batch_repo_uri }}
         run: |
           WEB_URI=$(aws cloudformation describe-stacks \
             --stack-name codec-converter-ecr-${{ needs.setup.outputs.environment }} \
@@ -160,9 +157,6 @@ jobs:
 
       - name: Get IAM Roles Outputs
         id: iam-roles-outputs
-        outputs:
-          batch_job_role_arn: ${{ steps.get-iam-roles.outputs.batch_job_role_arn }}
-          batch_task_execution_role_arn: ${{ steps.get-iam-roles.outputs.batch_task_execution_role_arn }}
         run: |
           JOB_ARN=$(aws cloudformation describe-stacks \
             --stack-name codec-converter-iam-roles-${{ needs.setup.outputs.environment }} \
