@@ -66,6 +66,7 @@ Resources:
               - s3:ListAllMyBuckets
               - s3:PutEncryptionConfiguration
               - s3:PutLifecycleConfiguration
+              - s3:PutBucketCORS
             Resource: '*'
 
           # S3 バケット操作権限（CloudFormation テンプレートアップロード用）
@@ -156,6 +157,7 @@ Resources:
               - dynamodb:TagResource
               - dynamodb:UntagResource
               - dynamodb:UpdateTimeToLive
+              - dynamodb:DescribeTimeToLive
             Resource: '*'
 
   # ============================================================================
