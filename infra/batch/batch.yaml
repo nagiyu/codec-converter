@@ -72,7 +72,6 @@ Parameters:
     Description: Job timeout in seconds
 
 Resources:
-
   # ============================================================================
   # Security Group for Batch Compute Environment
   # ============================================================================
@@ -92,6 +91,20 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub 'codec-converter-batch-sg-${Environment}'
+        - Key: Project
+          Value: codec-converter
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ============================================================================
+  # CloudWatch Log Group for Batch Jobs
+  # ============================================================================
+  BatchLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/batch/codec-converter-${Environment}'
+      RetentionInDays: 30
+      Tags:
         - Key: Project
           Value: codec-converter
         - Key: Environment
@@ -133,20 +146,6 @@ Resources:
         Project: codec-converter
         Environment: !Ref Environment
         ManagedBy: CloudFormation
-
-  # ============================================================================
-  # CloudWatch Log Group for Batch Jobs
-  # ============================================================================
-  BatchLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub '/aws/batch/codec-converter-${Environment}'
-      RetentionInDays: 30
-      Tags:
-        - Key: Project
-          Value: codec-converter
-        - Key: Environment
-          Value: !Ref Environment
 
   # ============================================================================
   # Batch Job Definition
