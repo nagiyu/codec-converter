@@ -77,6 +77,18 @@ Resources:
               - s3:ListBucket
             Resource: '*'
 
+          # IAM 作成権限（Lambda/Batch 用ロール作成）
+          - Sid: AllowIAMRoleCreation
+            Effect: Allow
+            Action:
+              - iam:CreateRole
+              - iam:AttachRolePolicy
+              - iam:PutRolePolicy
+              - iam:DeleteRole
+              - iam:DetachRolePolicy
+              - iam:DeleteRolePolicy
+            Resource: '*'
+
           # IAM ロール PassRole 権限（Lambda/Batch 用）
           - Sid: AllowPassRole
             Effect: Allow
