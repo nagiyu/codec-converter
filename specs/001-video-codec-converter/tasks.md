@@ -32,7 +32,7 @@
 目標: ユーザーが動画をアップロードし、コーデック検出→変換→ダウンロードできること。
 独立テスト条件: sample 動画を用いてアップロード→変換→ダウンロードが可能で、出力が選択したコーデックであること。
 
-- [ ] T014 [US1] `POST /presign-upload` API 実装（事前署名の生成）: web/nextjs/src/app/api/presign-upload/route.ts
+- [x] T014 [US1] `POST /presign-upload` API 実装（事前署名の生成）: web/nextjs/src/app/api/presign-upload/route.ts
 - [ ] T015 [US1] `POST /submit-job` API 実装（ConversionJob 登録 + Batch Submit）: web/nextjs/src/app/api/submit-job/route.ts
 - [ ] T016 [US1] `GET /jobs/{jobId}` API 実装（ジョブステータス取得）: web/nextjs/src/app/api/jobs/[jobId]/route.ts
 - [ ] T017 [US1] `GET /download/{jobId}` API 実装（短寿命 presigned GET を返す）: web/nextjs/src/app/api/download/[jobId]/route.ts
