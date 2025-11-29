@@ -6,7 +6,7 @@
 
 ## Phase 0: IAM (デプロイ・開発用の最低限のIAM設定)
 
-- [ ] T001 IAM ポリシーを作成（GitHub Actions 用 / Next.js 用 / Batch 用）: infra/iam/policies/
+- [x] T001 IAM ポリシーを作成（GitHub Actions 用 / Next.js 用 / Batch 用）: infra/iam/policies/
 - [ ] T002 GitHub Actions 用の IAM ユーザーを作成（アクセスキー生成・Secret 出力）: infra/iam/github-actions-user.yaml
 - [ ] T003 ローカル開発用 IAM ユーザー（Next.js）を作成（アクセスキー生成）: infra/iam/dev-nextjs-user.yaml
 - [ ] T004 ローカル開発用 IAM ユーザー（Batch ワーカー）を作成（アクセスキー生成）: infra/iam/dev-batch-user.yaml
