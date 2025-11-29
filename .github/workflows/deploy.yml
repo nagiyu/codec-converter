@@ -75,6 +75,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    outputs:
+      web_repo_uri: ${{ steps.ecr-outputs.outputs.web_repo_uri }}
+      batch_repo_uri: ${{ steps.ecr-outputs.outputs.batch_repo_uri }}
 
     steps:
       - name: Checkout code
@@ -117,6 +120,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    outputs:
+      batch_job_role_arn: ${{ steps.iam-roles-outputs.outputs.batch_job_role_arn }}
+      batch_task_execution_role_arn: ${{ steps.iam-roles-outputs.outputs.batch_task_execution_role_arn }}
 
     steps:
       - name: Checkout code
