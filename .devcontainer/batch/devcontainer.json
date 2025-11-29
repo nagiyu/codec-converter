@@ -1,13 +1,18 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
 {
-	"name": "Web",
+	"name": "Batch",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-20-bookworm",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
 	"containerEnv": {
 		"AWS_ACCESS_KEY_ID": "",
 		"AWS_SECRET_ACCESS_KEY": "",
-		"AWS_REGION": ""
+		"AWS_REGION": "",
+		"INPUT_S3_BUCKET": "",
+		"OUTPUT_S3_BUCKET": "",
+		"DYNAMODB_TABLE": ""
 	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.

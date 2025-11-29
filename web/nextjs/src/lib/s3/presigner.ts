@@ -2,7 +2,7 @@
  * S3 service for generating presigned upload URLs.
  */
 
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 /**
@@ -71,6 +71,27 @@ export async function generatePresignedUploadUrl(
     Bucket: bucket,
     Key: s3Key,
     ContentType: contentType,
+  });
+
+  return getSignedUrl(client, command, { expiresIn });
+}
+
+export async function generatePresignedDownloadUrl(
+  s3Key: string,
+  bucketName?: string,
+  expiresInSeconds?: number
+): Promise<string> {
+  const client = getS3Client();
+  const bucket =
+    bucketName ?? process.env.OUTPUT_S3_BUCKET ?? "codec-converter-output";
+  const expiresIn =
+    typeof expiresInSeconds === "number"
+      ? expiresInSeconds
+      : parseInt(process.env.S3_PRESIGNED_DOWNLOAD_EXPIRATION || "60", 10);
+
+  const command = new GetObjectCommand({
+    Bucket: bucket,
+    Key: s3Key,
   });
 
   return getSignedUrl(client, command, { expiresIn });

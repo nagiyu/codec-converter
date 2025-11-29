@@ -33,12 +33,12 @@
 独立テスト条件: sample 動画を用いてアップロード→変換→ダウンロードが可能で、出力が選択したコーデックであること。
 
 - [x] T014 [US1] `POST /presign-upload` API 実装（事前署名の生成）: web/nextjs/src/app/api/presign-upload/route.ts
-- [ ] T015 [US1] `POST /submit-job` API 実装（ConversionJob 登録 + Batch Submit）: web/nextjs/src/app/api/submit-job/route.ts
-- [ ] T016 [US1] `GET /jobs/{jobId}` API 実装（ジョブステータス取得）: web/nextjs/src/app/api/jobs/[jobId]/route.ts
-- [ ] T017 [US1] `GET /download/{jobId}` API 実装（短寿命 presigned GET を返す）: web/nextjs/src/app/api/download/[jobId]/route.ts
+- [x] T015 [US1] `POST /submit-job` API 実装（ConversionJob 登録 + Batch Submit）: web/nextjs/src/app/api/submit-job/route.ts
+- [x] T016 [US1] `GET /jobs/{jobId}` API 実装（ジョブステータス取得）: web/nextjs/src/app/api/jobs/[jobId]/route.ts
+- [x] T017 [US1] `GET /download/{jobId}` API 実装（短寿命 presigned GET を返す）: web/nextjs/src/app/api/download/[jobId]/route.ts
 - [ ] T018 [US1] ConversionJob と VideoFile のモデル定義を追加: web/nextjs/src/lib/models/conversionJob.ts
 - [ ] T019 [US1] DynamoDB リポジトリ実装（conversionJobRepository）: web/nextjs/src/lib/dynamodb/conversionJobRepository.ts
-- [ ] T020 [US1] Batch ワーカー（ffmpeg を呼ぶロジック）のサンプル実装: batch/src/worker.ts
+- [x] T020 [US1] Batch ワーカー（ffmpeg を呼ぶロジック）のサンプル実装: batch/src/worker.ts
 - [ ] T021 [US1] E2E スモークテストを作成（小さなサンプル動画でアップロード→変換→ダウンロードを検証）: specs/001-video-codec-converter/tests/e2e/smoke.test.md
 
 ### ユーザーストーリー 2 (P2) — ドラッグ＆ドロップと進捗表示

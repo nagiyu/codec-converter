@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aws-sdk/client-batch": "^3.940.0",
     "@aws-sdk/client-dynamodb": "^3.940.0",
     "@aws-sdk/client-s3": "^3.940.0",
     "@aws-sdk/lib-dynamodb": "^3.940.0",
@@ -19,7 +20,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^20.19.25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/uuid": "^10.0.0",

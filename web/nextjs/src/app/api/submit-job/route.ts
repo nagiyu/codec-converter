@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { BatchClient, SubmitJobCommand } from "@aws-sdk/client-batch";
 import { v4 as uuidv4 } from "uuid";
 import { saveConversionJob, getVideoFileByS3Key } from "@/lib/dynamodb";
 import type { ConversionJob, TargetCodec } from "@/lib/models/conversionJob";
@@ -103,7 +104,49 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     await saveConversionJob(conversionJob);
 
-    // TODO: Submit job to AWS Batch for actual processing
+    // Submit to AWS Batch if configured (development mode skips submission)
+    const jobQueue = process.env.AWS_BATCH_JOB_QUEUE;
+    const jobDefinition = process.env.AWS_BATCH_JOB_DEFINITION;
+    const region =
+      process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-east-1";
+
+    if (jobQueue && jobDefinition) {
+      try {
+        const batchClient = new BatchClient({ region });
+
+        const submitParams = {
+          jobName: jobId,
+          jobQueue,
+          jobDefinition,
+          containerOverrides: {
+            environment: [
+              { name: "JOB_ID", value: jobId },
+              { name: "S3_KEY", value: s3Key },
+              { name: "TARGET_CODEC", value: codec },
+              { name: "OUTPUT_PREFIX", value: `outputs/${jobId}/` },
+            ],
+          },
+        };
+
+        await batchClient.send(new SubmitJobCommand(submitParams));
+      } catch (batchError) {
+        console.error("Failed to submit AWS Batch job:", batchError);
+
+        // Mark job as failed in DynamoDB
+        conversionJob.status = "failed";
+        conversionJob.error_message = String(batchError);
+        await saveConversionJob(conversionJob);
+
+        return NextResponse.json(
+          { error: "Failed to submit batch job" },
+          { status: 500 }
+        );
+      }
+    } else {
+      console.log(
+        "AWS Batch not configured; skipping submission (development mode)."
+      );
+    }
 
     return NextResponse.json({ jobId }, { status: 202 });
   } catch (error) {
