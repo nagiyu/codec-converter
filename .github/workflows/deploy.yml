@@ -412,8 +412,8 @@ jobs:
               Environment=${{ needs.setup.outputs.environment }} \
               ImageUri=$IMAGE_URI \
               NextjsPolicyArn=$NEXTJS_POLICY_ARN \
-              AWS_BATCH_JOB_QUEUE="${{ steps.batch-outputs.outputs.batch_job_queue }}" \
-              AWS_BATCH_JOB_DEFINITION="${{ steps.batch-outputs.outputs.batch_job_definition }}" \
+              AWS_BATCH_JOB_QUEUE=${{ steps.batch-outputs.outputs.batch_job_queue }} \
+              AWS_BATCH_JOB_DEFINITION=${{ steps.batch-outputs.outputs.batch_job_definition }} \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
 
