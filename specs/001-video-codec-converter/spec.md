@@ -1,230 +1,233 @@
-# Feature Specification: Video Codec Converter
+# 機能仕様: 動画コーデック変換
 
 **Feature Branch**: `001-video-codec-converter`
-**Created**: 2025-11-24
-**Status**: Draft
-**Input**: User description: "動画をアップロードすると、今のコーデックが表示されて、異なるコーデックを選択すると変換した動画ファイルをダウンロードできる、Web アプリを作成します。"
+**作成日**: 2025-11-24
+**ステータス**: Draft
+**入力**: ユーザー説明: "動画をアップロードすると、現在のコーデックが表示され、別のコーデックを選択すると変換済みの動画ファイルをダウンロードできる Web アプリを作成します。"
 
-## User Scenarios & Testing *(mandatory)*
+## 補足事項
 
-### User Story 1 - Convert single video (Priority: P1)
+### セッション 2025-11-29
 
-A user uploads a single video file, the app detects and displays the file's current video codec, the user selects a different target codec, the system converts the video and the user downloads the converted file.
+- Q: デプロイパイプラインのモデル → A: 環境は `development` と `production` の2種類とする。`develop` および `release/**` 系ブランチは開発環境（development）に、`master` は本番環境（production）に対応する。各ブランチへのプッシュで自動デプロイされる設計とし、環境判別はブランチ名で行う。Fully automated pipelines を想定して良い。
 
-**Why this priority**: This is the core value of the feature — enabling simple codec conversion and immediate download.
+- Q: 仕様書の出力言語 → A: Spec Kit による成果物は日本語で作成する。
 
-**Independent Test**: Upload a sample video, confirm detected codec, select a target codec, click convert, verify resulting file downloads and plays with the selected codec.
+### Session 2025-11-29
 
-**Acceptance Scenarios**:
+- Q: FR-009: MVPでサポートすべきターゲットコーデックはどれか？ → A: H.264 (MP4) のみをMVPでサポートする。
+- Q: FR-010: MVP の最大アップロードサイズと許容変換時間の SLA は？ → A: 最大アップロードサイズを `500MB`、変換は `5分以内` を目標とする（Phase 1）。
+- Q: FR-011: アップロードと変換の認証/認可はどうするか？ → A: Phase1 は公開（認証不要）で実施する。濫用やコスト問題が顕在化した場合は認証導入を検討する。
 
-1. **Given** a supported video file, **When** the user uploads it, **Then** the UI displays detected codec and basic metadata (duration, resolution).
-2. **Given** the user selects a target codec and starts conversion, **When** conversion finishes successfully, **Then** a download link/button for the converted file is available and the downloaded file uses the selected codec.
+### Phased rollout
 
----
+- Phase 1 (MVP): サポート対象は H.264 (MP4) のみとして実装・検証する。開発環境で反復テストして安定化させることを優先する。
+- Phase 2: 要件と運用コストを評価した上で VP9 (webm) と HEVC/H.265 のサポートを追加する予定。
+- Phase 3: AV1 など将来の効率的なコーデックの追加を検討・実装する。
+- 機能の「最初の完了」は Phase 1 の受け入れ基準を満たしたときにマークする。プロジェクト全体の完了は各フェーズの完了状況に応じて段階的に評価する。
 
-### User Story 2 - Drag-and-drop and progress (Priority: P2)
+## ユーザーシナリオとテスト *(必須)*
 
-User can drag-and-drop a video to upload and sees conversion progress and estimated time remaining.
+### ユーザーストーリー 1 - 単一動画の変換 (優先度: P1)
 
-**Why this priority**: Improves usability and feedback for larger files.
+ユーザーが単一の動画ファイルをアップロードすると、アプリはそのファイルの現在のビデオコーデックを検出して表示する。ユーザーが別のターゲットコーデックを選択すると、システムは動画を変換し、ユーザーは変換後のファイルをダウンロードできる。
 
-**Independent Test**: Drag-and-drop a file, verify upload starts, progress indicator updates, and final download link appears.
+**この優先度の理由**: コア機能であり、シンプルなコーデック変換と即時ダウンロードを可能にするため。
 
-**Acceptance Scenarios**:
+**独立テスト**: サンプル動画をアップロードし、検出されたコーデックを確認、ターゲットコーデックを選択して変換を実行、変換後のファイルがダウンロード可能で選択したコーデックで再生できることを確認する。
 
-1. **Given** a file is dropped into the drop zone, **When** upload starts, **Then** a progress bar is shown and updates until completion.
+**受け入れシナリオ**:
 
----
-
-### User Story 3 - Error handling and unsupported codecs (Priority: P3)
-
-If a file or conversion is unsupported or fails, the user receives a clear error and guidance (e.g., supported formats, retry, contact support).
-
-**Why this priority**: Ensures graceful failure and reduces user confusion.
-
-**Independent Test**: Upload an intentionally unsupported or corrupted file and verify user sees a clear error and possible remediation steps.
-
-**Acceptance Scenarios**:
-
-1. **Given** an unsupported file, **When** the user uploads, **Then** the UI shows an error explaining the issue and lists supported container/codec formats.
+1. **前提** サポートされる動画ファイルがある **とき** ユーザーがそれをアップロードすると、 **ならば** UI に検出されたコーデックと基本メタデータ（再生時間、解像度など）が表示される。
+2. **前提** ユーザーがターゲットコーデックを選択して変換を開始した **とき** 変換が正常に完了すると、変換済みファイルのダウンロードリンク/ボタンが提供され、ダウンロードしたファイルが選択したコーデックであること。
 
 ---
 
-### Edge Cases
+### ユーザーストーリー 2 - ドラッグ＆ドロップと進捗表示 (優先度: P2)
 
-- Very large files that exceed upload or processing limits — should be rejected with an explanatory error.
-- Interrupted uploads or conversions — should be resumable or provide clear retry instructions.
-- Files with multiple video streams or unusual container formats — the system should either detect/offer options or clearly state unsupported scenarios.
+ユーザーはドラッグ＆ドロップで動画をアップロードでき、変換の進捗や推定残り時間が表示される。
 
-## Requirements *(mandatory)*
+**この優先度の理由**: 大きなファイルでの操作性とフィードバックを改善するため。
 
-### Functional Requirements
+**独立テスト**: ファイルをドロップしてアップロードが開始されること、進捗表示が更新されること、最終的にダウンロードリンクが表示されることを確認する。
 
-- **FR-001**: The system MUST accept user video uploads via file picker and drag-and-drop.
-- **FR-002**: The system MUST detect and display the uploaded file's primary video codec and basic metadata (container, codec, duration, resolution, file size).
-- **FR-003**: The system MUST present a list of available target codecs for conversion and allow the user to select one.
-- **FR-004**: The system MUST perform the codec conversion on the server (or a supported processing backend) and produce a downloadable video file.
-- **FR-005**: The system MUST provide conversion status and progress to the user, and a download link once conversion completes.
-- **FR-006**: The system MUST handle common failures gracefully and expose clear error messages and remediation steps.
-- **FR-007**: The system MUST preserve audio streams unless the user chooses audio changes (out of scope for MVP).
-- **FR-008**: The system MUST generate unique, time-limited download links for converted files.
+**受け入れシナリオ**:
 
-*Unclear / scope questions marked for clarification:* 
+1. **前提** ドロップゾーンにファイルが置かれた **とき** アップロードが開始されると、 **ならば** 進捗バーが表示され、完了まで更新される。
 
-- **FR-009**: Supported initial target codecs and formats are TBD. [NEEDS CLARIFICATION: Which target codecs should be supported in MVP (suggested options: H.264 (mp4), HEVC/H.265, VP9 (webm), AV1)?]
-- **FR-010**: Upload size limit and processing SLA are TBD. [NEEDS CLARIFICATION: What is the maximum upload file size and acceptable conversion time SLA for the MVP?]
-- **FR-011**: Authentication/authorization requirement is unclear. [NEEDS CLARIFICATION: Should uploads and conversions require authenticated users or be available publicly?]
+---
 
-### Key Entities
+### ユーザーストーリー 3 - エラーハンドリングと非対応コーデック (優先度: P3)
 
-- **VideoFile**: Represents an uploaded file. Attributes: id, filename, container, video_codec, audio_codec, duration_seconds, resolution, file_size_bytes, upload_timestamp, owner_id (if applicable).
-- **ConversionJob**: Represents a conversion task. Attributes: id, video_file_id, target_codec, status (queued/running/succeeded/failed), progress_percent, started_at, finished_at, output_file_path, error_message.
-- **Codec**: Supported codecs and their friendly names (e.g., H.264, HEVC/H.265, VP9, AV1).
+ファイルや変換が非対応または失敗した場合、ユーザーは明確なエラーと対処方法（サポートされる形式、再試行、サポート連絡先など）を受け取る。
 
-## Success Criteria *(mandatory)*
+**この優先度の理由**: 優雅な失敗処理によりユーザーの混乱を減らすため。
 
-### Measurable Outcomes
+**独立テスト**: 意図的に非対応または破損したファイルをアップロードし、ユーザーが明確なエラーメッセージと回復手順を確認できること。
 
-- **SC-001**: For files <= 100 MB, the detected codec and metadata are displayed to the user within 5 seconds of upload completion (95% of uploads).
-- **SC-002**: For files within the announced size limit, conversion completes successfully and a downloadable file is available in under 5 minutes for 90% of conversions.
-- **SC-003**: 95% of conversions for supported input/target codec combinations succeed without manual intervention.
-- **SC-004**: Primary user journey (upload → select codec → convert → download) has a task completion rate of >= 90% in basic manual testing.
+**受け入れシナリオ**:
 
-## Assumptions
+1. **前提** 非対応のファイルがある **とき** ユーザーがアップロードすると、 **ならば** UI は問題を説明するエラーを表示し、サポートされるコンテナ/コーデック形式を列挙する。
 
-- Conversions are performed server-side (or via managed processing) rather than client-side in the browser.
-- MVP will support a small set of popular target codecs (see FR-009) — exact list requires clarification.
-- Default behavior preserves audio and uses reasonable default container for the selected codec (e.g., mp4 for H.264), unless specified by user (out of scope for MVP).
+---
 
-## Acceptance Criteria (summary)
+### エッジケース
 
-- Upload a supported video, confirm displayed codec metadata.
-- Select a supported target codec, complete conversion, and successfully download playable output that uses the chosen codec.
-- Receive clear errors for unsupported files or processing failures.
+- アップロードまたは処理制限を超える非常に大きなファイル — 説明付きのエラーで拒否すること。
+- アップロードや変換が中断された場合 — 再開可能にするか、明確な再試行手順を提供すること。
+- 複数のビデオストリームや特殊なコンテナ形式を持つファイル — システムは検出してオプションを提示するか、非対応であることを明示すること。
 
-## Implementation Notes (non-normative)
+## 要件 *(必須)*
 
-- Avoid implementation-specific details in the spec; these are suggestions for planning only: using FFmpeg or a managed transcoding service is typical for server-side conversion.
+### 機能要件
 
-## Files/Artifacts
+- **FR-001**: システムはファイルピッカーとドラッグ＆ドロップによる動画アップロードを受け付けること。
+- **FR-002**: システムはアップロードされたファイルの主要なビデオコーデックと基本メタデータ（コンテナ、コーデック、再生時間、解像度、ファイルサイズ）を検出して表示すること。
+- **FR-003**: システムは変換可能なターゲットコーデックの一覧を提示し、ユーザーが選択できるようにすること。
+- **FR-004**: システムはサーバー（またはサポートされた処理バックエンド）でコーデック変換を行い、ダウンロード可能な動画ファイルを生成すること。
+- **FR-005**: システムは変換の状態と進捗をユーザーに提供し、変換完了後にダウンロードリンクを出すこと。
+- **FR-006**: システムは一般的な失敗を適切に扱い、明確なエラーメッセージと対処手順を提示すること。
+- **FR-007**: システムは（MVPでは）ユーザーが音声の変更を選ばない限り音声ストリームを保持すること。
+- **FR-008**: システムは変換済みファイルに対して一意かつ時間制限付きのダウンロードリンクを生成すること。
 
-- Prototype UI mockups and sample test videos should be added to the feature folder as needed during planning.
+*不明点 / スコープに関する質問:*
+
+- **FR-009**: 初期サポート対象のターゲットコーデックは Phase 1 として H.264 (MP4) のみとする。以降のフェーズで追加コーデックを順次サポートする。
+- **FR-010**: アップロードサイズ上限は `500MB`、変換の処理 SLA は `5分以内` とする（Phase 1 の目標）。
+- **FR-011**: Phase1 は公開（認証不要）で実施する。大容量処理や長期保存を追加する場合、認証要件を再検討する。
+
+### 主なエンティティ
+
+- **VideoFile**: アップロードされたファイルを表す。属性: id, filename, container, video_codec, audio_codec, duration_seconds, resolution, file_size_bytes, upload_timestamp, owner_id（該当する場合）。
+- **ConversionJob**: 変換タスクを表す。属性: id, video_file_id, target_codec, status（queued/running/succeeded/failed）, progress_percent, started_at, finished_at, output_file_path, error_message。
+- **Codec**: サポートされるコーデックと表示名（例: H.264, HEVC/H.265, VP9, AV1）。
+
+## 成功基準 *(必須)*
+
+### 測定可能な成果指標
+
+- **SC-001**: ファイルが100MB以下の場合、アップロード完了から5秒以内に検出されたコーデックとメタデータが表示される（95%のアップロードで達成）。
+- **SC-002**: 公開されたサイズ上限内のファイルについては、変換が成功しダウンロード可能なファイルが 5 分以内に利用可能になる割合が 90% であること。
+- **SC-003**: サポートされる入力/ターゲットコーデックの組み合わせにおいて、95% の変換が手動介入なしで成功すること。
+- **SC-004**: 主要ユーザージャーニー（アップロード → コーデック選択 → 変換 → ダウンロード）のタスク完了率が基本的な手動テストで >= 90% であること。
+
+## 想定
+
+- 変換はクライアント側ではなくサーバー側（または管理された処理）で行う。
+- MVP は少数の一般的なターゲットコーデックをサポートする想定（FR-009 を参照） — 正確な一覧は要確認。
+- デフォルト動作は音声を保持し、選択されたコーデックに対して妥当なデフォルトコンテナ（例: H.264 なら mp4）を使用する。
+
+## 受け入れ基準（要約）
+
+- サポートされる動画をアップロードすると、検出されたコーデックとメタデータが表示される。
+- サポートされるターゲットコーデックを選択し、変換が完了して選択したコーデックで再生可能な出力をダウンロードできる。
+- 非対応ファイルや処理失敗に対して明確なエラーが提示される。
+
+## 実装ノート（非規範）
+
+- 仕様内で実装特有の詳細は避ける。提案としてサーバーサイド変換には FFmpeg やマネージドなトランスコーディングサービスの利用が一般的である。
+
+## ファイル／成果物
+
+- プロトタイプの UI モックアップやテスト用のサンプル動画は、計画時にフィーチャーフォルダに追加すること。
 
 --
 
-**[NEEDS_FOLLOWUP]**: See the three clarification questions in the companion checklist and respond to allow finalizing the spec.
-# Feature Specification: [FEATURE NAME]
+**[要フォローアップ]**: 補助チェックリストにある3つの確認事項に回答してください（上記 FR-009, FR-010, FR-011）。
+
+# 機能仕様: [FEATURE NAME]
 
 **Feature Branch**: `[###-feature-name]`  
-**Created**: [DATE]  
-**Status**: Draft  
-**Input**: User description: "$ARGUMENTS"
+**作成日**: [DATE]  
+**ステータス**: Draft  
+**入力**: ユーザー説明: "$ARGUMENTS"
 
-## User Scenarios & Testing *(mandatory)*
+## ユーザーシナリオとテスト *(必須)*
 
 <!--
-  IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
-  Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
-  you should still have a viable MVP (Minimum Viable Product) that delivers value.
-  
-  Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
-  Think of each story as a standalone slice of functionality that can be:
-  - Developed independently
-  - Tested independently
-  - Deployed independently
-  - Demonstrated to users independently
+	重要: ユーザーストーリーは価値順に優先付けすること。各ストーリーは独立してテスト可能であるべき。
 -->
 
-### User Story 1 - [Brief Title] (Priority: P1)
+### ユーザーストーリー 1 - [簡潔なタイトル] (優先度: P1)
 
-[Describe this user journey in plain language]
+[このユーザージャーニーを平易に記述する]
 
-**Why this priority**: [Explain the value and why it has this priority level]
+**この優先度の理由**: [価値と優先度の理由を記述]
 
-**Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
+**独立テスト**: [このストーリーが独立してどのようにテストできるか記述]
 
-**Acceptance Scenarios**:
+**受け入れシナリオ**:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-2. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **前提** [初期状態], **とき** [アクション], **ならば** [期待結果]
+2. **前提** [初期状態], **とき** [アクション], **ならば** [期待結果]
 
 ---
 
-### User Story 2 - [Brief Title] (Priority: P2)
+### ユーザーストーリー 2 - [簡潔なタイトル] (優先度: P2)
 
-[Describe this user journey in plain language]
+[このユーザージャーニーを平易に記述]
 
-**Why this priority**: [Explain the value and why it has this priority level]
+**この優先度の理由**: [価値と優先度の理由を記述]
 
-**Independent Test**: [Describe how this can be tested independently]
+**独立テスト**: [このストーリーが独立してどのようにテストできるか記述]
 
-**Acceptance Scenarios**:
+**受け入れシナリオ**:
 
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-
----
-
-### User Story 3 - [Brief Title] (Priority: P3)
-
-[Describe this user journey in plain language]
-
-**Why this priority**: [Explain the value and why it has this priority level]
-
-**Independent Test**: [Describe how this can be tested independently]
-
-**Acceptance Scenarios**:
-
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+1. **前提** [初期状態], **とき** [アクション], **ならば** [期待結果]
 
 ---
 
-[Add more user stories as needed, each with an assigned priority]
+### ユーザーストーリー 3 - [簡潔なタイトル] (優先度: P3)
 
-### Edge Cases
+[このユーザージャーニーを平易に記述]
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right edge cases.
--->
+**この優先度の理由**: [価値と優先度の理由を記述]
 
-- What happens when [boundary condition]?
-- How does system handle [error scenario]?
+**独立テスト**: [このストーリーが独立してどのようにテストできるか記述]
 
-## Requirements *(mandatory)*
+**受け入れシナリオ**:
 
-<!--
-  ACTION REQUIRED: The content in this section represents placeholders.
-  Fill them out with the right functional requirements.
--->
+1. **前提** [初期状態], **とき** [アクション], **ならば** [期待結果]
 
-### Functional Requirements
+---
 
-- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
-- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]  
-- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
-- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
-- **FR-005**: System MUST [behavior, e.g., "log all security events"]
+[必要に応じてストーリーを追加]
 
-*Example of marking unclear requirements:*
-
-- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
-- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
-
-### Key Entities *(include if feature involves data)*
-
-- **[Entity 1]**: [What it represents, key attributes without implementation]
-- **[Entity 2]**: [What it represents, relationships to other entities]
-
-## Success Criteria *(mandatory)*
+### エッジケース
 
 <!--
-  ACTION REQUIRED: Define measurable success criteria.
-  These must be technology-agnostic and measurable.
+	実装時に検討すべき境界条件やエラーシナリオをここに列挙する
 -->
 
-### Measurable Outcomes
+- [境界条件のとき何が起きるか？]
+- [エラーシナリオをどう扱うか？]
 
-- **SC-001**: [Measurable metric, e.g., "Users can complete account creation in under 2 minutes"]
-- **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
-- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
-- **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
+## 要件 *(必須)*
+
+### 機能要件
+
+- **FR-001**: システムは [具体的な能力] を持つこと。
+- **FR-002**: システムは [具体的な能力] を持つこと。
+- **FR-003**: ユーザーは [主要な操作] を行えること。
+- **FR-004**: システムは [データ要件] を満たすこと。
+- **FR-005**: システムは [セキュリティやログなどの振る舞い] を行うこと。
+
+*不明点の例:*
+
+- **FR-006**: 認証方式は未定（メール/パスワード、SSO、OAuth など）。
+- **FR-007**: データ保持期間は未定。
+
+### 主なエンティティ
+
+- **[Entity 1]**: [役割と主要属性]
+- **[Entity 2]**: [役割と関連性]
+
+## 成功基準 *(必須)*
+
+### 測定可能な成果指標
+
+- **SC-001**: [測定可能なメトリクスの例]
+- **SC-002**: [測定可能なメトリクスの例]
+- **SC-003**: [ユーザー満足度等の指標]
+- **SC-004**: [ビジネスメトリクスの例]
+
