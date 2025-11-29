@@ -67,11 +67,97 @@ jobs:
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
 
-  # Deploy CloudFormation stacks for IAM users (depends on policies)
+  # Deploy ECR repositories
+  deploy-ecr:
+    name: Deploy ECR
+    runs-on: ubuntu-latest
+    needs: [setup, deploy-iam-policies]
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy ECR CFN
+        run: |
+          aws cloudformation deploy \
+            --template-file infra/cloudformation/ecr.yaml \
+            --stack-name codec-converter-ecr-${{ needs.setup.outputs.environment }} \
+            --parameter-overrides Environment=${{ needs.setup.outputs.environment }} \
+            --no-fail-on-empty-changeset
+
+      - name: Get ECR Outputs
+        id: ecr-outputs
+        run: |
+          WEB_URI=$(aws cloudformation describe-stacks \
+            --stack-name codec-converter-ecr-${{ needs.setup.outputs.environment }} \
+            --query "Stacks[0].Outputs[?OutputKey=='WebAppRepositoryUri'].OutputValue" \
+            --output text)
+          BATCH_URI=$(aws cloudformation describe-stacks \
+            --stack-name codec-converter-ecr-${{ needs.setup.outputs.environment }} \
+            --query "Stacks[0].Outputs[?OutputKey=='BatchWorkerRepositoryUri'].OutputValue" \
+            --output text)
+          echo "web_repo_uri=$WEB_URI" >> $GITHUB_OUTPUT
+          echo "batch_repo_uri=$BATCH_URI" >> $GITHUB_OUTPUT
+
+  # Deploy IAM roles required for Batch (BatchJobRole, BatchTaskExecutionRole)
+  deploy-iam-roles:
+    name: Deploy IAM Roles
+    runs-on: ubuntu-latest
+    needs: [setup, deploy-iam-policies]
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy Batch/Lambda Roles
+        run: |
+          aws cloudformation deploy \
+            --template-file infra/iam/lambda-batch-roles.yaml \
+            --stack-name codec-converter-iam-roles-${{ needs.setup.outputs.environment }} \
+            --parameter-overrides \
+              Environment=${{ needs.setup.outputs.environment }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+
+      - name: Get IAM Roles Outputs
+        id: iam-roles-outputs
+        run: |
+          JOB_ARN=$(aws cloudformation describe-stacks \
+            --stack-name codec-converter-iam-roles-${{ needs.setup.outputs.environment }} \
+            --query "Stacks[0].Outputs[?OutputKey=='BatchJobRoleArn'].OutputValue" \
+            --output text)
+          EXEC_ARN=$(aws cloudformation describe-stacks \
+            --stack-name codec-converter-iam-roles-${{ needs.setup.outputs.environment }} \
+            --query "Stacks[0].Outputs[?OutputKey=='BatchTaskExecutionRoleArn'].OutputValue" \
+            --output text)
+          echo "batch_job_role_arn=$JOB_ARN" >> $GITHUB_OUTPUT
+          echo "batch_task_execution_role_arn=$EXEC_ARN" >> $GITHUB_OUTPUT
+
+  # Deploy CloudFormation stacks for IAM users (depends on policies and roles)
   deploy-iam-users:
     name: Deploy IAM Users
     runs-on: ubuntu-latest
-    needs: [setup, deploy-iam-policies]
+    needs: [setup, deploy-iam-policies, deploy-iam-roles]
     permissions:
       contents: read
       id-token: write
@@ -181,6 +267,41 @@ jobs:
             --template-file infra/dynamodb/entities-table.yaml \
             --stack-name codec-converter-dynamodb-entities-${{ needs.setup.outputs.environment }} \
             --parameter-overrides Environment=${{ needs.setup.outputs.environment }} \
+            --no-fail-on-empty-changeset
+
+  # Deploy Batch CloudFormation stack
+  deploy-batch-stack:
+    name: Deploy Batch Stack
+    runs-on: ubuntu-latest
+    needs: [setup, deploy-ecr, deploy-iam-roles]
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy Batch CFN
+        run: |
+          aws cloudformation deploy \
+            --template-file infra/batch/batch.yaml \
+            --stack-name codec-converter-batch-${{ needs.setup.outputs.environment }} \
+            --parameter-overrides \
+              Environment=${{ needs.setup.outputs.environment }} \
+              BatchJobRoleArn=${{ needs.deploy-iam-roles.outputs.batch_job_role_arn }} \
+              BatchTaskExecutionRoleArn=${{ needs.deploy-iam-roles.outputs.batch_task_execution_role_arn }} \
+              EcrRepositoryUri=${{ needs.deploy-ecr.outputs.batch_repo_uri }} \
+              VpcId=${{ secrets.VPC_ID }} \
+              SubnetIds=${{ secrets.SUBNET_IDS }} \
+              ImageTag=${{ github.sha }} \
             --no-fail-on-empty-changeset
 
   # Docker build and push for Next.js
@@ -303,7 +424,7 @@ jobs:
   deploy-summary:
     name: Deploy Summary
     runs-on: ubuntu-latest
-    needs: [setup, deploy-iam-policies, deploy-iam-users, deploy-s3-buckets, deploy-dynamodb-entities, deploy-nextjs, deploy-batch]
+    needs: [setup, deploy-iam-policies, deploy-iam-roles, deploy-iam-users, deploy-s3-buckets, deploy-dynamodb-entities, deploy-nextjs, deploy-batch, deploy-batch-stack]
     if: always()
 
     steps:

@@ -53,6 +53,65 @@ Resources:
               - ecr:DescribeRepositories
               - ecr:CreateRepository
               - ecr:TagResource
+              - ecr:GetRepositoryPolicy
+              - ecr:SetRepositoryPolicy
+              - ecr:DeleteRepository
+            Resource: '*'
+
+          # ECR リポジトリポリシー操作（必要に応じてリポジトリポリシーを設定）
+          - Sid: AllowECRRepositoryPolicyOperations
+            Effect: Allow
+            Action:
+              - ecr:GetRepositoryPolicy
+              - ecr:SetRepositoryPolicy
+            Resource: '*'
+
+          # CloudWatch Logs 操作（スタックデプロイ時のログ出力補助）
+          - Sid: AllowCloudWatchLogsOperations
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+              - logs:DescribeLogGroups
+              - logs:DescribeLogStreams
+            Resource: '*'
+
+          # EC2 権限（VPC / セキュリティグループ / サブネット関連）
+          - Sid: AllowEC2Operations
+            Effect: Allow
+            Action:
+              - ec2:CreateSecurityGroup
+              - ec2:DeleteSecurityGroup
+              - ec2:AuthorizeSecurityGroupIngress
+              - ec2:AuthorizeSecurityGroupEgress
+              - ec2:RevokeSecurityGroupIngress
+              - ec2:RevokeSecurityGroupEgress
+              - ec2:DescribeVpcs
+              - ec2:DescribeSubnets
+              - ec2:DescribeSecurityGroups
+              - ec2:CreateTags
+            Resource: '*'
+
+          # Batch 管理権限（Compute Environment / Job Queue の作成・更新・削除等）
+          - Sid: AllowBatchManagement
+            Effect: Allow
+            Action:
+              - batch:CreateComputeEnvironment
+              - batch:DeleteComputeEnvironment
+              - batch:UpdateComputeEnvironment
+              - batch:CreateJobQueue
+              - batch:DeleteJobQueue
+              - batch:UpdateJobQueue
+              - batch:RegisterJobDefinition
+              - batch:DeregisterJobDefinition
+            Resource: '*'
+
+          # サービスリンクドロール作成（Batch/ECS による自動作成を許可）
+          - Sid: AllowCreateServiceLinkedRole
+            Effect: Allow
+            Action:
+              - iam:CreateServiceLinkedRole
             Resource: '*'
 
           # S3 操作権限（バケット作成用）
