@@ -123,16 +123,16 @@ jobs:
             --output text)
           echo "arn=$ARN" >> $GITHUB_OUTPUT
 
-      - name: Deploy GitHub Actions User
-        run: |
-          aws cloudformation deploy \
-            --template-file infra/iam/github-actions-user.yaml \
-            --stack-name codec-converter-github-actions-user-${{ needs.setup.outputs.environment }} \
-            --parameter-overrides \
-              Environment=${{ needs.setup.outputs.environment }} \
-              GitHubActionsPolicyArn=${{ steps.github-actions-policy.outputs.arn }} \
-            --capabilities CAPABILITY_NAMED_IAM \
-            --no-fail-on-empty-changeset
+      # - name: Deploy GitHub Actions User
+      #   run: |
+      #     aws cloudformation deploy \
+      #       --template-file infra/iam/github-actions-user.yaml \
+      #       --stack-name codec-converter-github-actions-user-${{ needs.setup.outputs.environment }} \
+      #       --parameter-overrides \
+      #         Environment=${{ needs.setup.outputs.environment }} \
+      #         GitHubActionsPolicyArn=${{ steps.github-actions-policy.outputs.arn }} \
+      #       --capabilities CAPABILITY_NAMED_IAM \
+      #       --no-fail-on-empty-changeset
 
       - name: Deploy Dev Next.js User
         run: |
