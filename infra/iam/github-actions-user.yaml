@@ -56,6 +56,11 @@ Resources:
               - ecr:GetRepositoryPolicy
               - ecr:SetRepositoryPolicy
               - ecr:DeleteRepository
+              - ecr:PutLifecyclePolicy
+              - ecr:GetLifecyclePolicy
+              - ecr:DeleteLifecyclePolicy
+              - ecr:ListImages
+              - ecr:DeleteImage
             Resource: '*'
 
           # ECR リポジトリポリシー操作（必要に応じてリポジトリポリシーを設定）

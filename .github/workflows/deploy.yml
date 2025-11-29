@@ -129,6 +129,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Get Policy ARNs
+        id: policy-arns
+        run: |
+          NEXTJS_ARN=$(aws cloudformation describe-stacks \
+            --stack-name codec-converter-nextjs-policy-${{ needs.setup.outputs.environment }} \
+            --query "Stacks[0].Outputs[?OutputKey=='NextjsPolicyArn'].OutputValue" \
+            --output text || echo "")
+          BATCH_ARN=$(aws cloudformation describe-stacks \
+            --stack-name codec-converter-batch-policy-${{ needs.setup.outputs.environment }} \
+            --query "Stacks[0].Outputs[?OutputKey=='BatchWorkerPolicyArn'].OutputValue" \
+            --output text || echo "")
+          echo "nextjs_policy_arn=$NEXTJS_ARN" >> $GITHUB_OUTPUT
+          echo "batch_worker_policy_arn=$BATCH_ARN" >> $GITHUB_OUTPUT
+
       - name: Deploy Batch/Lambda Roles
         run: |
           aws cloudformation deploy \
@@ -136,6 +150,8 @@ jobs:
             --stack-name codec-converter-iam-roles-${{ needs.setup.outputs.environment }} \
             --parameter-overrides \
               Environment=${{ needs.setup.outputs.environment }} \
+              NextjsPolicyArn=${{ steps.policy-arns.outputs.nextjs_policy_arn }} \
+              BatchWorkerPolicyArn=${{ steps.policy-arns.outputs.batch_worker_policy_arn }} \
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
 
