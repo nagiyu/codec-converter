@@ -14,7 +14,7 @@
 ## Phase 1: Setup (最小限のリソース作成)
 
 - [ ] T005 [P] Next.js の最低限の雛形を確認/追加: web/nextjs/package.json
-- [ ] T006 [P] Batch 用の簡易 Dockerfile を作成/確認: batch/Dockerfile
+- [x] T006 [P] Batch 用の簡易 Dockerfile を作成/確認: batch/Dockerfile
 - [x] T007 GitHub Actions の初版ワークフローを追加: .github/workflows/deploy.yml
 - [ ] T008 CloudFormation の最小テンプレートを追加 (S3/DynamoDB): infra/cloudformation/minimal.yaml
 - [ ] T009 [P] Local 開発用の起動手順を README に記載: specs/001-video-codec-converter/quickstart.md
