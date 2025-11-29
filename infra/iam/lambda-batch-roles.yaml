@@ -17,11 +17,11 @@ Parameters:
 
   NextjsPolicyArn:
     Type: String
-    Description: Next.js 用に作成済みの管理ポリシーの ARN (例: infra/iam/policies/nextjs-policy.yaml の出力)
+    Description: Next.js 用に作成済みの管理ポリシーの ARN (e.g. infra/iam/policies/nextjs-policy.yaml の出力)
 
   BatchWorkerPolicyArn:
     Type: String
-    Description: Batch ワーカー用に作成済みの管理ポリシーの ARN (例: infra/iam/policies/batch-policy.yaml の出力)
+    Description: Batch ワーカー用に作成済みの管理ポリシーの ARN (e.g. infra/iam/policies/batch-policy.yaml の出力)
 
 Resources:
   # ============================================================================

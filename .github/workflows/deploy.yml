@@ -322,7 +322,7 @@ jobs:
 
   # Docker build and push for Next.js
   deploy-nextjs:
-    needs: [setup, deploy-iam-users]
+    needs: [setup, deploy-ecr, deploy-iam-users]
     name: Deploy Next.js
     runs-on: ubuntu-latest
     permissions:
@@ -382,7 +382,7 @@ jobs:
   deploy-batch:
     name: Deploy Batch Worker
     runs-on: ubuntu-latest
-    needs: [setup, deploy-iam-users]
+    needs: [setup, deploy-ecr, deploy-iam-users]
     permissions:
       contents: read
       id-token: write
