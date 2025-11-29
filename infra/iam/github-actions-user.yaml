@@ -83,6 +83,7 @@ Resources:
               - logs:UntagResource
               - logs:DeleteLogGroup
               - logs:DeleteLogStream
+              - logs:PutRetentionPolicy
             Resource: '*'
 
           # EC2 権限（VPC / セキュリティグループ / サブネット関連）
