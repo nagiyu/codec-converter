@@ -182,6 +182,8 @@ Resources:
               - iam:GetGroup
               - iam:ListGroupPolicies
               - iam:GetGroupPolicy
+              - iam:TagRole
+              - iam:TagGroup
             Resource: '*'
 
           # IAM ロール PassRole 権限（Lambda/Batch 用）
