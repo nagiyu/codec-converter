@@ -49,14 +49,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Deploy GitHub Actions Policy
-        run: |
-          aws cloudformation deploy \
-            --template-file infra/iam/policies/github-actions-policy.yaml \
-            --stack-name codec-converter-github-actions-policy-${{ needs.setup.outputs.environment }} \
-            --parameter-overrides Environment=${{ needs.setup.outputs.environment }} \
-            --capabilities CAPABILITY_NAMED_IAM \
-            --no-fail-on-empty-changeset
+      # - name: Deploy GitHub Actions Policy
+      #   run: |
+      #     aws cloudformation deploy \
+      #       --template-file infra/iam/policies/github-actions-policy.yaml \
+      #       --stack-name codec-converter-github-actions-policy-${{ needs.setup.outputs.environment }} \
+      #       --parameter-overrides Environment=${{ needs.setup.outputs.environment }} \
+      #       --capabilities CAPABILITY_NAMED_IAM \
+      #       --no-fail-on-empty-changeset
 
       - name: Deploy Next.js Policy
         run: |
@@ -96,14 +96,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Get GitHub Actions Policy ARN
-        id: github-actions-policy
-        run: |
-          ARN=$(aws cloudformation describe-stacks \
-            --stack-name codec-converter-github-actions-policy-${{ needs.setup.outputs.environment }} \
-            --query "Stacks[0].Outputs[?OutputKey=='GitHubActionsPolicyArn'].OutputValue" \
-            --output text)
-          echo "arn=$ARN" >> $GITHUB_OUTPUT
+      # - name: Get GitHub Actions Policy ARN
+      #   id: github-actions-policy
+      #   run: |
+      #     ARN=$(aws cloudformation describe-stacks \
+      #       --stack-name codec-converter-github-actions-policy-${{ needs.setup.outputs.environment }} \
+      #       --query "Stacks[0].Outputs[?OutputKey=='GitHubActionsPolicyArn'].OutputValue" \
+      #       --output text)
+      #     echo "arn=$ARN" >> $GITHUB_OUTPUT
 
       - name: Get Next.js Policy ARN
         id: nextjs-policy
