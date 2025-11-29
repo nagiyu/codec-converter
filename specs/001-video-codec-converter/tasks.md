@@ -1,128 +1,87 @@
----
-description: "ビデオコーデックコンバータ機能のタスク一覧（自動生成）"
----
+# タスク一覧: 動画コーデック変換 (Phase 1)
 
-# タスク: ビデオコーデックコンバータ
+**Feature**: 動画コーデック変換 (Phase 1)
 
-**入力**：`/specs/001-video-codec-converter/` の設計ドキュメント
+---Phase 1: Setup (最小限のリソース作成)
 
-## フェーズ 1: セットアップ（共有インフラ）
+## Phase 0: IAM (デプロイ・開発用の最低限のIAM設定)
 
-- [x] T001 `web/nextjs/` のスキャフォールドを作成 (`Dockerfile` と `package.json`)（パス: `web/nextjs/`）
-- [x] T002 `batch/` のスキャフォールドを作成 (`Dockerfile` と TypeScript の `src/` エントリポイント、GitHub Actions による Docker ビルド検証を含む）（パス: `batch/`）
-- [x] T003 初期の CI ワークフロー骨子を追加（lint/test/build/push）`/.github/workflows/ci.yml`（パス: `.github/workflows/ci.yml`）
-- [x] T004 機能用の `README.md` を追加（クイックスタートの参照を含む）（パス: `specs/001-video-codec-converter/quickstart.md`）
-- [x] T005 リポジトリルートにリンティング／フォーマット／エディタ設定を追加（`.eslintrc.json`, `.prettierrc`, `.editorconfig`）
+- [ ] T001 IAM ポリシーを作成（GitHub Actions 用 / Next.js 用 / Batch 用）: infra/iam/policies/
+- [ ] T002 GitHub Actions 用の IAM ユーザーを作成（アクセスキー生成・Secret 出力）: infra/iam/github-actions-user.yaml
+- [ ] T003 ローカル開発用 IAM ユーザー（Next.js）を作成（アクセスキー生成）: infra/iam/dev-nextjs-user.yaml
+- [ ] T004 ローカル開発用 IAM ユーザー（Batch ワーカー）を作成（アクセスキー生成）: infra/iam/dev-batch-user.yaml
 
----
+## Phase 1: Setup (最小限のリソース作成)
 
-## フェーズ 2: 基盤（前提タスク）
+- [ ] T005 [P] Next.js の最低限の雛形を確認/追加: web/nextjs/package.json
+- [ ] T006 [P] Batch 用の簡易 Dockerfile を作成/確認: batch/Dockerfile
+- [ ] T007 GitHub Actions の初版ワークフローを追加: .github/workflows/deploy.yml
+- [ ] T008 CloudFormation の最小テンプレートを追加 (S3/DynamoDB): infra/cloudformation/minimal.yaml
+- [ ] T009 [P] Local 開発用の起動手順を README に記載: specs/001-video-codec-converter/quickstart.md
 
-- [x] T006 [P] アップロード／出力用 S3 バケットの CloudFormation テンプレートを作成（`infra/nextjs/s3-buckets.yaml`）（パス: `infra/nextjs/s3-buckets.yaml`）
-- [x] T007 [P] 単一テーブル `Entities` 用の CloudFormation テンプレートを作成（`infra/dynamodb/entities-table.yaml`）（パス: `infra/dynamodb/entities-table.yaml`）
-- [x] T008 [P] Lambda と Batch 実行ロール用の IAM ポリシー例を実装（`infra/iam/lambda-batch-roles.yaml`）（パス: `infra/iam/lambda-batch-roles.yaml`）
-- [x] T009 `VideoFile`, `ConversionJob`, `Codec` の基本データモデルを作成（`web/nextjs/src/lib/models/`、ファイル: `videoFile.ts`, `conversionJob.ts`, `codec.ts`）
-- [x] T010 `contracts/upload-api.yaml` に対応する Next.js の API ルートスタブを作成：
-    - `web/nextjs/src/app/api/presign-upload/route.ts`
-    - `web/nextjs/src/app/api/submit-job/route.ts`
-    - `web/nextjs/src/app/api/jobs/[jobId]/route.ts`
-    - `web/nextjs/src/app/api/download/[jobId]/route.ts`
-    - `web/nextjs/src/app/api/codecs/route.ts`
+## Phase 2: Foundational (ブロックとなる前提作業)
 
-- [x] T011 [P] サーバーサイドのダウンロードプロキシ例を追加（`web/nextjs/src/app/api/download/[jobId]/route.ts`、`quickstart.md` にストリーミング案内あり）
+- [ ] T010 DynamoDB 単一テーブル設計を infra/dynamodb/entities-table.yaml に反映: infra/dynamodb/entities-table.yaml
+- [ ] T011 S3 バケット定義を infra/s3/buckets.yaml に追加: infra/s3/buckets.yaml
+- [ ] T012 IAM 最小権限ロールのテンプレートを追加: infra/iam/lambda-batch-roles.yaml
+- [ ] T013 CI で Docker イメージをビルドして ECR にプッシュするステップをワークフローに追加: .github/workflows/deploy.yml
 
----
+## Phase 3: ユーザーストーリーごとのタスク
 
-## フェーズ 3: ユーザーストーリー 1 - 単一動画の変換（優先度: P1）[US1] 🎯 MVP
+### ユーザーストーリー 1 (P1) — 単一動画の変換
+目標: ユーザーが動画をアップロードし、コーデック検出→変換→ダウンロードできること。
+独立テスト条件: sample 動画を用いてアップロード→変換→ダウンロードが可能で、出力が選択したコーデックであること。
 
-**ゴール**：単一動画をアップロードし、コーデックやメタデータを検出、変換後のターゲットコーデックを選択して変換を実行、ダウンロード可能な出力を提供する。
+- [ ] T014 [US1] `POST /presign-upload` API 実装（事前署名の生成）: web/nextjs/src/app/api/presign-upload/route.ts
+- [ ] T015 [US1] `POST /submit-job` API 実装（ConversionJob 登録 + Batch Submit）: web/nextjs/src/app/api/submit-job/route.ts
+- [ ] T016 [US1] `GET /jobs/{jobId}` API 実装（ジョブステータス取得）: web/nextjs/src/app/api/jobs/[jobId]/route.ts
+- [ ] T017 [US1] `GET /download/{jobId}` API 実装（短寿命 presigned GET を返す）: web/nextjs/src/app/api/download/[jobId]/route.ts
+- [ ] T018 [US1] ConversionJob と VideoFile のモデル定義を追加: web/nextjs/src/lib/models/conversionJob.ts
+- [ ] T019 [US1] DynamoDB リポジトリ実装（conversionJobRepository）: web/nextjs/src/lib/dynamodb/conversionJobRepository.ts
+- [ ] T020 [US1] Batch ワーカー（ffmpeg を呼ぶロジック）のサンプル実装: batch/src/worker.ts
+- [ ] T021 [US1] E2E スモークテストを作成（小さなサンプル動画でアップロード→変換→ダウンロードを検証）: specs/001-video-codec-converter/tests/e2e/smoke.test.md
 
-**独立テスト**：<=100MB のサンプル動画をアップロードし、コーデックとメタデータが表示され、ターゲットコーデックを選択後に変換が成功し再生可能な出力をダウンロードできること。
+### ユーザーストーリー 2 (P2) — ドラッグ＆ドロップと進捗表示
+目標: ドラッグ＆ドロップでアップロードでき、進捗が表示されること。
+独立テスト条件: ドラッグ＆ドロップでアップロードが開始され、進捗バーが更新されること。
 
-- [x] T012 [US1] 事前署名アップロード情報を取得する `UploadService` スタブを作成（`web/nextjs/src/lib/services/uploadService.ts`、`presign-upload` 契約を使用）
-- [x] T013 [US1] `submit-job` を呼び出し `jobs/{jobId}` をポーリングする `JobService` スタブを作成（`web/nextjs/src/lib/services/jobService.ts`）
-- [x] T014 [US1] ファイルピッカーとコーデック選択を備えたクライアント UI ページを実装（`web/nextjs/src/app/(app)/convert/page.tsx`、パス: `web/nextjs/src/app/convert/page.tsx`）
-- [x] T015 [US1] `presign-upload` と `submit-job` のルートスタブにサーバー側統合を実装：入力検証と `VideoFile` / `ConversionJob` を DynamoDB に保存（パス: `web/nextjs/src/app/api/*.ts`）
-- [x] T016 [US1] `ConversionJob` のステータス更新フローを実装：Batch ジョブが進捗を DynamoDB に書き込み、`jobs/{jobId}` がステータスと `outputUrl` を返す（パス: `web/nextjs/src/app/api/jobs/[jobId]/route.ts`）
-- [x] T017 [US1] `ConversionJob` の状態を確認してから S3 オブジェクトをストリームするダウンロードプロキシエンドポイントを実装（パス: `web/nextjs/src/app/api/download/[jobId]/route.ts`）
-- [x] T018 [US1] クライアント側の進捗 UI と `jobs/{jobId}` / `download/{jobId}` に紐づくダウンロードボタンを追加（パス: `web/nextjs/src/app/convert/components/Progress.tsx`）
-- [ ] T019 [US1] ffmpeg で変換し DynamoDB を更新する最小限の Batch ワーカ用 `Dockerfile` とエントリポイントスクリプトを作成（パス: `batch/Dockerfile`, `batch/src/worker.js`）
+- [ ] T022 [P] [US2] フロントエンドのアップロード UI（ドラッグ＆ドロップ）実装: web/nextjs/src/app/convert/components/index.tsx
+- [ ] T023 [US2] クライアント側で presigned PUT を使ったアップロード進捗表示の実装: web/nextjs/src/app/convert/page.tsx
+- [ ] T024 [US2] 進捗ポーリング/イベント取得の統合（GET /jobs/{jobId} を定期取得）: web/nextjs/src/lib/services/jobService.ts
 
----
+### ユーザーストーリー 3 (P3) — エラーハンドリングと非対応コーデック
+目標: 非対応や失敗時に明確なエラーを表示すること。
+独立テスト条件: 非対応ファイルや破損ファイルをアップロードし、適切なエラーが表示されること。
 
-## フェーズ 4: ユーザーストーリー 2 - ドラッグ＆ドロップと進捗表示（優先度: P2）[US2]
+- [ ] T025 [US3] サーバー側の入力検証とエラーマッピング実装: web/nextjs/src/app/api/presign-upload/route.ts
+- [ ] T026 [US3] クライアント側でのエラーハンドリング UI を実装: web/nextjs/src/app/convert/components/ErrorBanner.tsx
+- [ ] T027 [US3] 非対応コーデックの一覧を返す API を実装（/api/codecs）: web/nextjs/src/app/api/codecs/route.ts
 
-**ゴール**：ドラッグ＆ドロップでのアップロードを有効にし、アップロードと変換の進捗（ETA 含む）を表示する。
+## 最終フェーズ: Polish & Cross-cutting Concerns
 
-**独立テスト**：ファイルをドラッグ＆ドロップしてアップロードが開始され、プログレスバーが更新され、変換完了時にダウンロードリンクが表示されることを確認する。
+- [ ] T028 CI/CD の Smoke Test を追加（デプロイ後に簡易 E2E を実行）: .github/workflows/deploy.yml
+- [ ] T029 ロギングと CloudWatch メトリクスの基本実装（変換失敗のアラート用）: infra/cloudwatch/alarms.yaml
+- [ ] T030 ドキュメント整備（README／運用手順）: specs/001-video-codec-converter/README.md
 
-- [ ] T020 [P] [US2] ドラッグ＆ドロップ用コンポーネントを追加（`web/nextjs/src/app/convert/components/DropZone.tsx`）
-- [ ] T021 [US2] `UploadService` にアップロード進捗報告を統合（パス: `web/nextjs/src/lib/services/uploadService.ts`）
-- [ ] T022 [US2] `Progress.tsx` とユニットヘルパー（`web/nextjs/src/lib/utils/progress.ts`）に ETA 計算と UI を追加
-- [ ] T023 [US2] ドラッグ＆ドロップ＋進捗シナリオの統合テスト骨子を追加（任意）（`specs/001-video-codec-converter/tests/integration/test_drag_drop.md`）
-
----
-
-## フェーズ 5: ユーザーストーリー 3 - エラーハンドリングと未対応コーデック（優先度: P3）[US3]
-
-**ゴール**：未対応のアップロードや変換失敗に対して明確なエラーメッセージと対処案を提供する。
-
-**独立テスト**：破損または未対応のファイルをアップロードした際に、明確なエラー UI と推奨対応が表示されることを確認する。
-
-- [ ] T024 [US3] `presign-upload` ルートでアップロードされたファイルの種類／サイズのサーバー側検証を実装（パス: `web/nextjs/src/app/api/presign-upload/route.ts`）
-- [ ] T025 [US3] クライアント側のエラー UI とフォールバック案内を実装（`web/nextjs/src/app/convert/components/ErrorBanner.tsx`）
-- [ ] T026 [US3] Batch ジョブ失敗時のログ／エラー収集を `batch/src/worker.js` に追加し、CloudWatch に関するドキュメントを `infra/` に記載
 
 ---
 
-## フェーズ 6: 仕上げ & 横断的懸念
+## 依存関係 (ユーザーストーリー完了順序)
 
-- [ ] T027 [P] ドキュメント：`specs/001-video-codec-converter/README.md` と `quickstart.md` を実行手順で更新
-- [ ] T028 [P] サービスのユニットテスト骨子とサンプルテストを `web/nextjs/tests/` に追加（TDD 希望の場合）
-- [ ] T029 セキュリティレビュー：S3 の事前署名 TTL や IAM の最小権限に関する簡易チェックリストを `specs/001-video-codec-converter/checklists/security.md` に追加
-- [ ] T030 パフォーマンス：Batch ワーカーの簡易負荷スモーク用スクリプトを `batch/tools/bench.sh` に追加
+- US1 (T014–T021) が最優先（MVP）。US2 は US1 の API 実装に部分的に依存するが、UI の一部は並行開発可能。
+- US3 は US1 の API 実装完了後に統合テストを実施することが望ましい。
+
+## 並列実行例
+
+- `T005` と `T006` は独立して並列実行可能 ([P] マークあり)。
+- フロントエンドの UI 実装 (`T018`,`T019`) はバックエンド API 実装 (`T014`–`T017`) と並行可能だが、統合テストは API 実装後に実行する。
+
+## 実装戦略（MVP 優先）
+
+- フェーズ順: Phase1 Setup → Foundational → US1（MVP）→ US2 → US3 → Polish
+- MVP は **User Story 1** を最優先とし、E2E スモークテストが通ることをもって受け入れとする。
+- 小さく反復: まず minimal presign-upload + submit-job + worker のフローをローカルで通す。次に UI を統合。
 
 ---
 
-## 依存関係と実行順序
-
-- フェーズ 1（セットアップ）→ フェーズ 2（基盤）→ フェーズ 3+（ユーザーストーリー）
-- 基盤タスク T006-T011 はユーザーストーリーのタスク T012+ の前に完了している必要がある
-- 各ストーリー内では：モデル → サービス → API エンドポイント → UI → 統合 の順に進める
-
-## 並列作業の例
-
-- 複数開発者が並行して作業可能：
-    - `web/nextjs/src/app/convert/*` の UI コンポーネント（T014, T018, T020）
-    - `batch/*` のワーカーと Dockerfile（T019）
-    - `infra/*` のテンプレート（T006-T008）
-
-## 実装方針
-
-- MVP 優先：まずフェーズ1＋フェーズ2 を実装し、US1（T012-T019）を完了して検証・デモする
-- 段階的：US1 検証後に US2、続いて US3 を実装
-
-## タスク概要
-
-- ファイル: `specs/001-video-codec-converter/tasks.md`
-- 合計タスク数: 30
-- ストーリー毎のタスク数:
-    - US1 (P1): 8 タスク (T012-T019)
-    - US2 (P2): 4 タスク (T020-T023)
-    - US3 (P3): 3 タスク (T024-T026)
-    - セットアップ/基盤/仕上げ: 15 タスク (T001-T011, T027-T030)
-
-## 各ストーリーの独立テスト基準
-
-- US1: <=100MB のサンプルアップロードで 5 秒以内にコーデック検出；変換は目標時間内に完了し、選択したコーデックで再生可能な出力がダウンロードできること
-- US2: ドラッグ＆ドロップでアップロードが開始され、進捗が表示され、最終的にダウンロード可能であること
-- US3: 未対応／破損ファイルで明確なエラー表示と推奨対応が示されること
-
-## MVP 提案
-
-- MVP 範囲: ユーザーストーリー 1 のみ（単一動画変換） — T001-T011 と T012-T019 を実装して検証する
-
-## フォーマット検証
-
-- すべてのタスクは `- [ ]` 形式のチェックリストで記載され、Task ID とファイルパスを含む
-
+Generated by Spec Kit task generator.
