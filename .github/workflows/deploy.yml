@@ -5,18 +5,131 @@ on:
     branches:
       - master
       - develop
+      - 'release/**'
   workflow_dispatch:
 
 # Minimal permissions for security
 permissions:
   contents: read
 
-env:
-  AWS_REGION: 'ap-northeast-1'  # Tokyo region, adjust as needed
-
 jobs:
+  # Determine deployment environment based on branch
+  setup:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+    steps:
+      - name: Determine environment
+        id: set-env
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+
+  # Deploy CloudFormation stacks for IAM policies (must be deployed first)
+  deploy-iam-policies:
+    name: Deploy IAM Policies
+    runs-on: ubuntu-latest
+    needs: [setup]
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy Next.js Policy
+        run: |
+          aws cloudformation deploy \
+            --template-file infra/iam/policies/nextjs-policy.yaml \
+            --stack-name codec-converter-nextjs-policy-${{ needs.setup.outputs.environment }} \
+            --parameter-overrides Environment=${{ needs.setup.outputs.environment }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+
+      - name: Deploy Batch Policy
+        run: |
+          aws cloudformation deploy \
+            --template-file infra/iam/policies/batch-policy.yaml \
+            --stack-name codec-converter-batch-policy-${{ needs.setup.outputs.environment }} \
+            --parameter-overrides Environment=${{ needs.setup.outputs.environment }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+
+  # Deploy CloudFormation stacks for IAM users (depends on policies)
+  deploy-iam-users:
+    name: Deploy IAM Users
+    runs-on: ubuntu-latest
+    needs: [setup, deploy-iam-policies]
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Get Next.js Policy ARN
+        id: nextjs-policy
+        run: |
+          ARN=$(aws cloudformation describe-stacks \
+            --stack-name codec-converter-nextjs-policy-${{ needs.setup.outputs.environment }} \
+            --query "Stacks[0].Outputs[?OutputKey=='NextjsPolicyArn'].OutputValue" \
+            --output text)
+          echo "arn=$ARN" >> $GITHUB_OUTPUT
+
+      - name: Get Batch Policy ARN
+        id: batch-policy
+        run: |
+          ARN=$(aws cloudformation describe-stacks \
+            --stack-name codec-converter-batch-policy-${{ needs.setup.outputs.environment }} \
+            --query "Stacks[0].Outputs[?OutputKey=='BatchWorkerPolicyArn'].OutputValue" \
+            --output text)
+          echo "arn=$ARN" >> $GITHUB_OUTPUT
+
+      - name: Deploy Dev Next.js User
+        run: |
+          aws cloudformation deploy \
+            --template-file infra/iam/dev-nextjs-user.yaml \
+            --stack-name codec-converter-local-nextjs-user-${{ needs.setup.outputs.environment }} \
+            --parameter-overrides \
+              Environment=${{ needs.setup.outputs.environment }} \
+              NextjsPolicyArn=${{ steps.nextjs-policy.outputs.arn }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+
+      - name: Deploy Dev Batch User
+        run: |
+          aws cloudformation deploy \
+            --template-file infra/iam/dev-batch-user.yaml \
+            --stack-name codec-converter-local-batch-user-${{ needs.setup.outputs.environment }} \
+            --parameter-overrides \
+              Environment=${{ needs.setup.outputs.environment }} \
+              BatchPolicyArn=${{ steps.batch-policy.outputs.arn }} \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
+
   # Docker build and push for Next.js
   deploy-nextjs:
+    needs: [setup, deploy-iam-users]
     name: Deploy Next.js
     runs-on: ubuntu-latest
     permissions:
@@ -47,7 +160,7 @@ jobs:
       #   with:
       #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ env.AWS_REGION }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
 
       # - name: Login to Amazon ECR
       #   if: steps.check-dockerfile.outputs.exists == 'true'
@@ -78,6 +191,7 @@ jobs:
   deploy-batch:
     name: Deploy Batch Worker
     runs-on: ubuntu-latest
+    needs: [setup, deploy-iam-users]
     permissions:
       contents: read
       # When ECR push is enabled, add: id-token: write (for OIDC)
@@ -106,7 +220,7 @@ jobs:
       #   with:
       #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
       #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ env.AWS_REGION }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
 
       # - name: Login to Amazon ECR
       #   if: steps.check-dockerfile.outputs.exists == 'true'
@@ -137,7 +251,7 @@ jobs:
   deploy-summary:
     name: Deploy Summary
     runs-on: ubuntu-latest
-    needs: [deploy-nextjs, deploy-batch]
+    needs: [setup, deploy-iam-policies, deploy-iam-users, deploy-nextjs, deploy-batch]
     if: always()
 
     steps:
@@ -145,11 +259,16 @@ jobs:
         run: |
           echo "Deploy Pipeline Summary:"
           echo "========================"
+          echo "Environment: ${{ needs.setup.outputs.environment }}"
+          echo "Deploy IAM Policies: ${{ needs.deploy-iam-policies.result }}"
+          echo "Deploy IAM Users: ${{ needs.deploy-iam-users.result }}"
           echo "Deploy Next.js: ${{ needs.deploy-nextjs.result }}"
           echo "Deploy Batch: ${{ needs.deploy-batch.result }}"
 
           # Fail the job if any deployment job failed
-          if [[ "${{ needs.deploy-nextjs.result }}" == "failure" ]] || \
+          if [[ "${{ needs.deploy-iam-policies.result }}" == "failure" ]] || \
+             [[ "${{ needs.deploy-iam-users.result }}" == "failure" ]] || \
+             [[ "${{ needs.deploy-nextjs.result }}" == "failure" ]] || \
              [[ "${{ needs.deploy-batch.result }}" == "failure" ]]; then
             echo "Deploy Pipeline failed!"
             exit 1
