@@ -81,6 +81,12 @@ Resources:
               - iam:CreateAccessKey
               - iam:DeleteAccessKey
               - iam:GetUser
+              - iam:CreateUser
+              - iam:DeleteUser
+              - iam:AttachUserPolicy
+              - iam:DetachUserPolicy
+              - iam:PutUserPolicy
+              - iam:TagUser
             Resource: '*'
 
           # IAM ロール PassRole 権限（Lambda/Batch 用）
