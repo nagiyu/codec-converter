@@ -370,7 +370,7 @@ jobs:
         if: steps.check-dockerfile.outputs.exists == 'true'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: codec-converter-web
+          ECR_REPOSITORY: ${{ needs.setup.outputs.environment == 'prod' && 'codec-converter-web-prd' || 'codec-converter-web-dev' }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker tag codec-converter-web:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
@@ -428,7 +428,7 @@ jobs:
         if: steps.check-dockerfile.outputs.exists == 'true'
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: codec-converter-batch
+          ECR_REPOSITORY: ${{ needs.setup.outputs.environment == 'prod' && 'codec-converter-batch-prd' || 'codec-converter-batch-dev' }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker tag codec-converter-batch:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
