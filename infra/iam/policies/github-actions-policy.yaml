@@ -87,6 +87,8 @@ Resources:
               - iam:DeleteRole
               - iam:DetachRolePolicy
               - iam:DeleteRolePolicy
+              - iam:CreatePolicy
+              - iam:DeletePolicy
             Resource: '*'
 
           # IAM ロール PassRole 権限（Lambda/Batch 用）
