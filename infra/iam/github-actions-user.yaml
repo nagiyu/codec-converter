@@ -64,6 +64,7 @@ Resources:
               - s3:PutBucketTagging
               - s3:DeleteBucket
               - s3:ListAllMyBuckets
+              - s3:PutEncryptionConfiguration
             Resource: '*'
 
           # S3 バケット操作権限（CloudFormation テンプレートアップロード用）
@@ -151,6 +152,8 @@ Resources:
               - dynamodb:UpdateTable
               - dynamodb:DescribeTable
               - dynamodb:ListTables
+              - dynamodb:TagResource
+              - dynamodb:UntagResource
             Resource: '*'
 
   # ============================================================================
