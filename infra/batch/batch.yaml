@@ -206,9 +206,14 @@ Resources:
       RetryStrategy:
         Attempts: 2
         EvaluateOnExit:
-          - OnStatusReason: 'Host EC2*'
+          # Fargate 固有のエラー: リソース取得失敗時にリトライ
+          - OnStatusReason: 'ResourceInitializationError*'
             Action: RETRY
-          - OnReason: '*error*'
+          # ネットワーク関連の一時的エラー時にリトライ
+          - OnStatusReason: 'CannotPullContainerError*'
+            Action: RETRY
+          # アプリケーションの正常終了時はリトライしない
+          - OnExitCode: '0'
             Action: EXIT
       ContainerProperties:
         Image: !If
