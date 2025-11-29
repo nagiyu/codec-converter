@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  CloudFormation template to deploy Next.js as a Lambda image and inject
+  AWS Batch configuration into environment variables.
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+    Description: Deployment environment name
+
+  ImageUri:
+    Type: String
+    Description: ECR image URI for the Next.js container (including tag)
+
+  NextjsPolicyArn:
+    Type: String
+    Description: ARN of the managed policy to attach to the Lambda execution role
+
+  AWS_BATCH_JOB_QUEUE:
+    Type: String
+    Description: ARN or name of the AWS Batch job queue to use
+
+  AWS_BATCH_JOB_DEFINITION:
+    Type: String
+    Description: ARN or name of the AWS Batch job definition to use
+
+Resources:
+  NextjsLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'codec-converter-nextjs-lambda-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !Ref NextjsPolicyArn
+      Tags:
+        - Key: Application
+          Value: codec-converter
+        - Key: Environment
+          Value: !Ref Environment
+
+  NextjsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub 'codec-converter-nextjs-${Environment}'
+      PackageType: Image
+      Role: !GetAtt NextjsLambdaRole.Arn
+      Code:
+        ImageUri: !Ref ImageUri
+      Environment:
+        Variables:
+          NODE_ENV: !Ref Environment
+          AWS_REGION: !Ref AWS::Region
+          AWS_BATCH_JOB_QUEUE: !Ref AWS_BATCH_JOB_QUEUE
+          AWS_BATCH_JOB_DEFINITION: !Ref AWS_BATCH_JOB_DEFINITION
+      Timeout: 30
+      Tags:
+        - Key: Application
+          Value: codec-converter
+        - Key: Environment
+          Value: !Ref Environment
+
+  NextjsFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !GetAtt NextjsFunction.Arn
+      AuthType: NONE
+      Cors:
+        AllowOrigins:
+          - '*'
+        AllowMethods:
+          - GET
+          - HEAD
+          - POST
+          - OPTIONS
+
+Outputs:
+  NextjsFunctionName:
+    Description: Lambda function name
+    Value: !Ref NextjsFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-NextjsFunctionName'
+
+  NextjsFunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt NextjsFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-NextjsFunctionArn'
+
+  NextjsFunctionUrl:
+    Description: Function URL for Next.js
+    Value: !GetAtt NextjsFunctionUrl.FunctionUrl
+    Export:
+      Name: !Sub '${AWS::StackName}-NextjsFunctionUrl'

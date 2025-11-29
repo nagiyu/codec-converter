@@ -7,7 +7,9 @@
 	"containerEnv": {
 		"AWS_ACCESS_KEY_ID": "",
 		"AWS_SECRET_ACCESS_KEY": "",
-		"AWS_REGION": ""
+		"AWS_REGION": "",
+		"AWS_BATCH_JOB_QUEUE": "",
+		"AWS_BATCH_JOB_DEFINITION": ""
 	},
 
 	// Features to add to the dev container. More info: https://containers.dev/features.

@@ -2,10 +2,10 @@ name: Deploy
 
 on:
   push:
-    branches:
-      - master
-      - develop
-      - 'release/**'
+    # branches:
+    #   - master
+    #   - develop
+    #   - 'release/**'
   workflow_dispatch:
 
 # Minimal permissions for security
@@ -328,7 +328,7 @@ jobs:
 
   # Docker build and push for Next.js
   deploy-nextjs:
-    needs: [setup, deploy-ecr, deploy-iam-users]
+    needs: [setup, deploy-ecr, deploy-iam-users, deploy-batch-stack]
     name: Deploy Next.js
     runs-on: ubuntu-latest
     permissions:
@@ -383,6 +383,39 @@ jobs:
           docker tag codec-converter-web:latest $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Set IMAGE_URI output
+        id: set-image-uri
+        run: |
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY=${{ needs.setup.outputs.environment == 'prod' && 'codec-converter-web-prd' || 'codec-converter-web-dev' }}
+          IMAGE_TAG=${{ github.sha }}
+          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Get Batch CloudFormation Outputs
+        id: batch-outputs
+        run: |
+          STACK=codec-converter-batch-${{ needs.setup.outputs.environment }}
+          JOB_QUEUE=$(aws cloudformation describe-stacks --stack-name $STACK --query "Stacks[0].Outputs[?OutputKey=='JobQueueName'].OutputValue" --output text || echo "")
+          JOB_DEF=$(aws cloudformation describe-stacks --stack-name $STACK --query "Stacks[0].Outputs[?OutputKey=='JobDefinitionName'].OutputValue" --output text || echo "")
+          echo "batch_job_queue=$JOB_QUEUE" >> $GITHUB_OUTPUT
+          echo "batch_job_definition=$JOB_DEF" >> $GITHUB_OUTPUT
+
+      - name: Deploy Next.js CloudFormation
+        run: |
+          NEXTJS_POLICY_ARN=$(aws cloudformation describe-stacks --stack-name codec-converter-nextjs-policy-${{ needs.setup.outputs.environment }} --query "Stacks[0].Outputs[?OutputKey=='NextjsPolicyArn'].OutputValue" --output text || echo "")
+          IMAGE_URI=${{ steps.set-image-uri.outputs.IMAGE_URI }}
+          aws cloudformation deploy \
+            --template-file infra/nextjs/nextjs.yaml \
+            --stack-name codec-converter-nextjs-${{ needs.setup.outputs.environment }} \
+            --parameter-overrides \
+              Environment=${{ needs.setup.outputs.environment }} \
+              ImageUri=$IMAGE_URI \
+              NextjsPolicyArn=$NEXTJS_POLICY_ARN \
+              AWS_BATCH_JOB_QUEUE="${{ steps.batch-outputs.outputs.batch_job_queue }}" \
+              AWS_BATCH_JOB_DEFINITION="${{ steps.batch-outputs.outputs.batch_job_definition }}" \
+            --capabilities CAPABILITY_NAMED_IAM \
+            --no-fail-on-empty-changeset
 
   # Docker build and push for batch worker
   deploy-batch:
