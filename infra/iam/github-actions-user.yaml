@@ -55,6 +55,17 @@ Resources:
               - ecr:TagResource
             Resource: '*'
 
+          # S3 操作権限（バケット作成用）
+          - Sid: AllowS3BucketCreation
+            Effect: Allow
+            Action:
+              - s3:CreateBucket
+              - s3:PutBucketPolicy
+              - s3:PutBucketTagging
+              - s3:DeleteBucket
+              - s3:ListAllMyBuckets
+            Resource: '*'
+
           # S3 バケット操作権限（CloudFormation テンプレートアップロード用）
           - Sid: AllowS3Operations
             Effect: Allow
@@ -129,6 +140,17 @@ Resources:
               - batch:DescribeJobDefinitions
               - batch:DescribeComputeEnvironments
               - batch:DescribeJobQueues
+            Resource: '*'
+
+          # DynamoDB 操作権限
+          - Sid: AllowDynamoDBOperations
+            Effect: Allow
+            Action:
+              - dynamodb:CreateTable
+              - dynamodb:DeleteTable
+              - dynamodb:UpdateTable
+              - dynamodb:DescribeTable
+              - dynamodb:ListTables
             Resource: '*'
 
   # ============================================================================
