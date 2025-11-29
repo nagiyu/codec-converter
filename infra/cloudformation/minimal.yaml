@@ -1,7 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
   Minimal CloudFormation template for Video Codec Converter.
-  Includes S3 buckets for uploads/outputs and DynamoDB table for entity storage.
+  Includes S3 buckets for uploads/outputs, DynamoDB table for entity storage,
+  and ECR repository for batch worker container images.
   T008: Minimal resources for Phase 1 setup.
 
 Parameters:
@@ -118,6 +119,46 @@ Resources:
         - Key: ManagedBy
           Value: CloudFormation
 
+  # ============================================================================
+  # ECR Repository
+  # ============================================================================
+
+  # Batch Worker Repository - stores Docker images for the ffmpeg batch worker
+  BatchWorkerRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub 'codec-converter-batch-${Environment}'
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      ImageTagMutability: MUTABLE
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep only the last 10 images",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 10
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+      Tags:
+        - Key: Project
+          Value: CodecConverter
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Purpose
+          Value: BatchWorkerImage
+
 Outputs:
   UploadBucketName:
     Description: Name of the S3 bucket for video uploads
@@ -154,3 +195,21 @@ Outputs:
     Value: !GetAtt EntitiesTable.Arn
     Export:
       Name: !Sub '${AWS::StackName}-EntitiesTableArn'
+
+  BatchWorkerRepositoryName:
+    Description: Name of the ECR repository for batch worker images
+    Value: !Ref BatchWorkerRepository
+    Export:
+      Name: !Sub '${AWS::StackName}-BatchWorkerRepositoryName'
+
+  BatchWorkerRepositoryArn:
+    Description: ARN of the ECR repository for batch worker images
+    Value: !GetAtt BatchWorkerRepository.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-BatchWorkerRepositoryArn'
+
+  BatchWorkerRepositoryUri:
+    Description: URI of the ECR repository for batch worker images
+    Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${BatchWorkerRepository}'
+    Export:
+      Name: !Sub '${AWS::StackName}-BatchWorkerRepositoryUri'
