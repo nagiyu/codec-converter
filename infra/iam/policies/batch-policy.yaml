@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Batch ワーカー用の最小 IAM ポリシー
+  (Minimal IAM policy for Batch worker)
+
+  このテンプレートは、Batch ワーカーがコーデック変換処理を実行するために
+  必要な S3、DynamoDB、CloudWatch Logs への最小限の権限を定義します。
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: デプロイ環境名
+
+  UploadBucketArn:
+    Type: String
+    Description: "アップロード用 S3 バケットの ARN (例: arn:aws:s3:::my-upload-bucket)"
+
+  OutputBucketArn:
+    Type: String
+    Description: "出力用 S3 バケットの ARN (例: arn:aws:s3:::my-output-bucket)"
+
+  EntitiesTableArn:
+    Type: String
+    Description: DynamoDB Entities テーブルの ARN
+
+Resources:
+  # ============================================================================
+  # Batch ワーカー用 S3 アクセスポリシー
+  # ============================================================================
+  BatchS3Policy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub 'codec-converter-batch-s3-policy-${Environment}'
+      Description: Batch ワーカー用 S3 アクセスポリシー
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          # アップロードバケットからの入力ファイル読み取り
+          - Sid: AllowUploadBucketRead
+            Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource:
+              - !Sub '${UploadBucketArn}/*'
+
+          # 出力バケットへの変換結果書き込み
+          - Sid: AllowOutputBucketWrite
+            Effect: Allow
+            Action:
+              - s3:PutObject
+            Resource:
+              - !Sub '${OutputBucketArn}/*'
+
+          # バケット一覧取得権限
+          - Sid: AllowBucketList
+            Effect: Allow
+            Action:
+              - s3:ListBucket
+            Resource:
+              - !Ref UploadBucketArn
+              - !Ref OutputBucketArn
+
+  # ============================================================================
+  # Batch ワーカー用 DynamoDB アクセスポリシー
+  # ============================================================================
+  BatchDynamoDBPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub 'codec-converter-batch-dynamodb-policy-${Environment}'
+      Description: Batch ワーカー用 DynamoDB アクセスポリシー
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          # ジョブステータス更新権限
+          - Sid: AllowDynamoDBUpdate
+            Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:UpdateItem
+            Resource:
+              - !Ref EntitiesTableArn
+
+  # ============================================================================
+  # Batch ワーカー用 CloudWatch Logs ポリシー
+  # ============================================================================
+  BatchLogsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub 'codec-converter-batch-logs-policy-${Environment}'
+      Description: Batch ワーカー用 CloudWatch Logs ポリシー
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudWatchLogs
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/batch/*'
+
+Outputs:
+  BatchS3PolicyArn:
+    Description: Batch S3 ポリシーの ARN
+    Value: !Ref BatchS3Policy
+    Export:
+      Name: !Sub '${AWS::StackName}-BatchS3PolicyArn'
+
+  BatchDynamoDBPolicyArn:
+    Description: Batch DynamoDB ポリシーの ARN
+    Value: !Ref BatchDynamoDBPolicy
+    Export:
+      Name: !Sub '${AWS::StackName}-BatchDynamoDBPolicyArn'
+
+  BatchLogsPolicyArn:
+    Description: Batch CloudWatch Logs ポリシーの ARN
+    Value: !Ref BatchLogsPolicy
+    Export:
+      Name: !Sub '${AWS::StackName}-BatchLogsPolicyArn'
