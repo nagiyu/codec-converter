@@ -311,12 +311,21 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Validate ECR URI
+      - name: Resolve ECR URI (direct)
+        id: resolve-ecr-uri
         run: |
-          if [ -z "${{ needs.deploy-ecr.outputs.batch_repo_uri }}" ]; then
-            echo "ERROR: batch_repo_uri is empty. Aborting deployment." >&2
+          STACK=codec-converter-ecr-${{ needs.setup.outputs.environment }}
+          BATCH_URI=$(aws cloudformation describe-stacks \
+            --stack-name $STACK \
+            --query "Stacks[0].Outputs[?OutputKey=='BatchWorkerRepositoryUri'].OutputValue" \
+            --output text || echo "")
+          if [ -z "$BATCH_URI" ] || [ "$BATCH_URI" = "None" ]; then
+            echo "ERROR: resolved Batch ECR URI is empty. Aborting." >&2
             exit 1
           fi
+          echo "Resolved Batch ECR URI: $BATCH_URI"
+          echo "batch_repo_uri=$BATCH_URI" >> $GITHUB_OUTPUT
+          echo "EcrRepositoryUri=$BATCH_URI" >> $GITHUB_OUTPUT
 
       - name: Deploy Batch CFN
         run: |
