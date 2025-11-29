@@ -1,10 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  Next.js アプリケーション用 IAM ポリシー
-  (IAM policy for Next.js application)
+  IAM policy for Next.js application.
 
-  このポリシーは Next.js API が S3 の事前署名 URL 生成、DynamoDB へのアクセス、
-  AWS Batch ジョブの送信を行うために必要な最小限の権限を定義します。
+  This policy defines the minimum permissions required for Next.js API
+  to generate S3 presigned URLs, access DynamoDB, and submit AWS Batch jobs.
 
 Parameters:
   Environment:

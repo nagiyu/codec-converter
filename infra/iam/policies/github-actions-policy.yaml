@@ -1,10 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  GitHub Actions 用 IAM ポリシー
-  (IAM policy for GitHub Actions CI/CD)
+  IAM policy for GitHub Actions CI/CD.
 
-  このポリシーは GitHub Actions が CloudFormation デプロイ、ECR プッシュ、
-  Lambda/Batch リソースの更新を行うために必要な最小限の権限を定義します。
+  This policy defines the minimum permissions required for GitHub Actions
+  to deploy CloudFormation, push to ECR, and update Lambda/Batch resources.
 
 Parameters:
   Environment:
