@@ -1,41 +1,142 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  IAM user for GitHub Actions CI/CD.
-
-  This template creates an IAM user for GitHub Actions to deploy resources.
-  Access keys should be created manually via AWS Console and stored as
-  GitHub Secrets.
-
-Parameters:
-  Environment:
-    Type: String
-    Default: dev
-    AllowedValues:
-      - dev
-      - prod
-    Description: デプロイ環境名
-
-  GitHubActionsPolicyArn:
-    Type: String
-    Description: >
-      GitHub Actions ポリシーの ARN
-      (policies/github-actions-policy.yaml からエクスポートされた値を使用)
+  IAM policy and user for GitHub Actions CI/CD.
 
 Resources:
+  # ============================================================================
+  # GitHub Actions 用 IAM ポリシー
+  # ============================================================================
+  GitHubActionsPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: codec-converter-github-actions-policy
+      Description: GitHub Actions CI/CD パイプライン用の最小権限ポリシー
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          # CloudFormation スタック操作権限
+          - Sid: AllowCloudFormationOperations
+            Effect: Allow
+            Action:
+              - cloudformation:CreateStack
+              - cloudformation:UpdateStack
+              - cloudformation:DeleteStack
+              - cloudformation:DescribeStacks
+              - cloudformation:DescribeStackEvents
+              - cloudformation:DescribeStackResources
+              - cloudformation:GetTemplate
+              - cloudformation:ValidateTemplate
+              - cloudformation:CreateChangeSet
+              - cloudformation:DescribeChangeSet
+              - cloudformation:ExecuteChangeSet
+              - cloudformation:DeleteChangeSet
+              - cloudformation:GetTemplateSummary
+            Resource: '*'
+
+          # ECR リポジトリ操作権限
+          - Sid: AllowECROperations
+            Effect: Allow
+            Action:
+              - ecr:GetAuthorizationToken
+            Resource: '*'
+
+          - Sid: AllowECRRepositoryOperations
+            Effect: Allow
+            Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+              - ecr:PutImage
+              - ecr:InitiateLayerUpload
+              - ecr:UploadLayerPart
+              - ecr:CompleteLayerUpload
+              - ecr:DescribeRepositories
+              - ecr:CreateRepository
+              - ecr:TagResource
+            Resource: '*'
+
+          # S3 バケット操作権限（CloudFormation テンプレートアップロード用）
+          - Sid: AllowS3Operations
+            Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:DeleteObject
+              - s3:ListBucket
+            Resource: '*'
+
+          # IAM 作成権限（Lambda/Batch 用ロール作成）
+          - Sid: AllowIAMRoleCreation
+            Effect: Allow
+            Action:
+              - iam:CreateRole
+              - iam:AttachRolePolicy
+              - iam:PutRolePolicy
+              - iam:DeleteRole
+              - iam:DetachRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:CreatePolicy
+              - iam:DeletePolicy
+              - iam:ListAccessKeys
+              - iam:CreateAccessKey
+              - iam:DeleteAccessKey
+              - iam:GetUser
+            Resource: '*'
+
+          # IAM ロール PassRole 権限（Lambda/Batch 用）
+          - Sid: AllowPassRole
+            Effect: Allow
+            Action:
+              - iam:PassRole
+            Resource: '*'
+            Condition:
+              StringEquals:
+                iam:PassedToService:
+                  - lambda.amazonaws.com
+                  - batch.amazonaws.com
+                  - ecs-tasks.amazonaws.com
+
+          # Lambda 関数更新権限
+          - Sid: AllowLambdaOperations
+            Effect: Allow
+            Action:
+              - lambda:CreateFunction
+              - lambda:UpdateFunctionCode
+              - lambda:UpdateFunctionConfiguration
+              - lambda:GetFunction
+              - lambda:DeleteFunction
+              - lambda:PublishVersion
+              - lambda:CreateAlias
+              - lambda:UpdateAlias
+              - lambda:GetAlias
+              - lambda:ListVersionsByFunction
+              - lambda:AddPermission
+              - lambda:RemovePermission
+            Resource: '*'
+
+          # Batch ジョブ定義更新権限
+          - Sid: AllowBatchOperations
+            Effect: Allow
+            Action:
+              - batch:RegisterJobDefinition
+              - batch:DeregisterJobDefinition
+              - batch:DescribeJobDefinitions
+              - batch:DescribeComputeEnvironments
+              - batch:DescribeJobQueues
+            Resource: '*'
+
   # ============================================================================
   # GitHub Actions 用 IAM ユーザー
   # ============================================================================
   GitHubActionsUser:
     Type: AWS::IAM::User
     Properties:
-      UserName: !Sub 'codec-converter-github-actions-${Environment}'
+      UserName: codec-converter-github-actions
       ManagedPolicyArns:
-        - !Ref GitHubActionsPolicyArn
+        - !Ref GitHubActionsPolicy
       Tags:
         - Key: Application
           Value: codec-converter
-        - Key: Environment
-          Value: !Ref Environment
         - Key: Purpose
           Value: GitHub Actions CI/CD
 

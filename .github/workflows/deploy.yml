@@ -49,15 +49,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # - name: Deploy GitHub Actions Policy
-      #   run: |
-      #     aws cloudformation deploy \
-      #       --template-file infra/iam/policies/github-actions-policy.yaml \
-      #       --stack-name codec-converter-github-actions-policy-${{ needs.setup.outputs.environment }} \
-      #       --parameter-overrides Environment=${{ needs.setup.outputs.environment }} \
-      #       --capabilities CAPABILITY_NAMED_IAM \
-      #       --no-fail-on-empty-changeset
-
       - name: Deploy Next.js Policy
         run: |
           aws cloudformation deploy \
@@ -96,15 +87,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # - name: Get GitHub Actions Policy ARN
-      #   id: github-actions-policy
-      #   run: |
-      #     ARN=$(aws cloudformation describe-stacks \
-      #       --stack-name codec-converter-github-actions-policy-${{ needs.setup.outputs.environment }} \
-      #       --query "Stacks[0].Outputs[?OutputKey=='GitHubActionsPolicyArn'].OutputValue" \
-      #       --output text)
-      #     echo "arn=$ARN" >> $GITHUB_OUTPUT
-
       - name: Get Next.js Policy ARN
         id: nextjs-policy
         run: |
@@ -122,17 +104,6 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='BatchWorkerPolicyArn'].OutputValue" \
             --output text)
           echo "arn=$ARN" >> $GITHUB_OUTPUT
-
-      # - name: Deploy GitHub Actions User
-      #   run: |
-      #     aws cloudformation deploy \
-      #       --template-file infra/iam/github-actions-user.yaml \
-      #       --stack-name codec-converter-github-actions-user-${{ needs.setup.outputs.environment }} \
-      #       --parameter-overrides \
-      #         Environment=${{ needs.setup.outputs.environment }} \
-      #         GitHubActionsPolicyArn=${{ steps.github-actions-policy.outputs.arn }} \
-      #       --capabilities CAPABILITY_NAMED_IAM \
-      #       --no-fail-on-empty-changeset
 
       - name: Deploy Dev Next.js User
         run: |
