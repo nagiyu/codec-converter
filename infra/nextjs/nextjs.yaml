@@ -62,6 +62,8 @@ Resources:
           NODE_ENV: !Ref Environment
           AWS_BATCH_JOB_QUEUE: !Ref BatchJobQueue
           AWS_BATCH_JOB_DEFINITION: !Ref BatchJobDefinition
+          S3_UPLOAD_BUCKET: !Sub 'codec-converter-uploads-${Environment}-${AWS::AccountId}'
+          S3_OUTPUT_BUCKET: !Sub 'codec-converter-outputs-${Environment}-${AWS::AccountId}'
       Timeout: 30
       Tags:
         - Key: Application
@@ -86,10 +88,9 @@ Resources:
         AllowOrigins:
           - '*'
         AllowMethods:
-          - '*'
-          # - GET
-          # - HEAD
-          # - POST
+          - GET
+          - HEAD
+          - POST
 
 Outputs:
   NextjsFunctionName:
