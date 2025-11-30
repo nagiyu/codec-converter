@@ -24,6 +24,9 @@ RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
+
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.1 /lambda-adapter /opt/extensions/lambda-adapter
+
 WORKDIR /app
 
 ENV NODE_ENV=production
