@@ -60,7 +60,6 @@ Resources:
       Environment:
         Variables:
           NODE_ENV: !Ref Environment
-          AWS_REGION: !Ref AWS::Region
           AWS_BATCH_JOB_QUEUE: !Ref BatchJobQueue
           AWS_BATCH_JOB_DEFINITION: !Ref BatchJobDefinition
       Timeout: 30
@@ -82,7 +81,6 @@ Resources:
           - GET
           - HEAD
           - POST
-          - OPTIONS
 
 Outputs:
   NextjsFunctionName:
