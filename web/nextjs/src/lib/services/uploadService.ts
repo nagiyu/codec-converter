@@ -19,6 +19,10 @@ export interface PresignUploadResponse {
   uploadUrl: string;
   /** S3 object key where the file will be stored */
   s3Key: string;
+  /** ID of the created VideoFile entity */
+  videoFileId?: string;
+  /** TTL in seconds for the presigned URL (optional) */
+  expiresIn?: number;
 }
 
 /**

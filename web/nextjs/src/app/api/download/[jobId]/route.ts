@@ -64,7 +64,8 @@ export async function GET(
       expiresIn
     );
 
-    return NextResponse.json({ url, expires_in: expiresIn }, { status: 200 });
+    // Redirect the client to the presigned S3 URL so the browser downloads the file directly.
+    return NextResponse.redirect(url);
   } catch (error) {
     console.error("Error generating presigned download URL:", error);
     return NextResponse.json(

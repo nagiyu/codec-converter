@@ -11,7 +11,7 @@ import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
  * Defaults to 'Entities-dev' for development.
  */
 export function getTableName(): string {
-  return process.env.DYNAMODB_TABLE_NAME || "Entities-dev";
+  return process.env.DYNAMODB_TABLE_NAME || "Codec-Converter-Entities-dev";
 }
 
 /**

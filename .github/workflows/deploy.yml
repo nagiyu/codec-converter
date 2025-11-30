@@ -346,6 +346,7 @@ jobs:
               VpcId=${{ secrets.VPC_ID }} \
               SubnetIds=${{ secrets.SUBNET_IDS }} \
               ImageTag=${{ github.sha }} \
+              JobTimeoutSeconds=900 \
               InputS3Bucket=$UPLOAD_BUCKET \
               OutputS3Bucket=$OUTPUT_BUCKET \
               DynamoDBTable=$DDB_TABLE \

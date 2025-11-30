@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect, ChangeEvent } from "react";
 import styles from "./page.module.css";
 import { Progress } from "./components";
+import { getPresignedUploadUrl, uploadFileToS3 } from "@/lib/services/uploadService";
 
 /** Codec option from API */
 interface CodecOption {
@@ -114,31 +115,16 @@ export default function ConvertPage() {
 
     try {
       // Step 1: Get presigned upload URL
-      const presignResponse = await fetch("/api/presign-upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          filename: selectedFile.name,
-          contentType: selectedFile.type,
-          fileSize: selectedFile.size,
-        }),
+      const presignResponse = await getPresignedUploadUrl({
+        filename: selectedFile.name,
+        contentType: selectedFile.type,
+        fileSize: selectedFile.size,
       });
 
-      if (!presignResponse.ok) {
-        const errorData = await presignResponse.json();
-        throw new Error(errorData.error || "Failed to get upload URL");
-      }
-
-      const { uploadUrl, s3Key } = await presignResponse.json();
+      const { uploadUrl, s3Key, videoFileId } = presignResponse;
 
       // Step 2: Upload file to S3 using presigned URL
-      // Note: In production, this will use the UploadService (T012) to upload
-      // the file with progress tracking. For now, we skip the actual S3 upload
-      // since the presigned URL is a stub.
-      if (uploadUrl) {
-        // TODO: Implement actual file upload via UploadService (T012)
-        console.log("Presigned URL received:", uploadUrl);
-      }
+      await uploadFileToS3(uploadUrl, selectedFile, selectedFile.type);
 
       // Step 3: Submit conversion job
       const submitResponse = await fetch("/api/submit-job", {
@@ -146,6 +132,7 @@ export default function ConvertPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           s3Key,
+          videoFileId,
           targetCodec: selectedCodec,
         }),
       });

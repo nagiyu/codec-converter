@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { BatchClient, SubmitJobCommand } from "@aws-sdk/client-batch";
 import { v4 as uuidv4 } from "uuid";
-import { saveConversionJob, getVideoFileByS3Key } from "@/lib/dynamodb";
+import { saveConversionJob, getVideoFileByS3Key, getVideoFileById } from "@/lib/dynamodb";
 import type { ConversionJob, TargetCodec } from "@/lib/models/conversionJob";
 
 /** Supported target codecs */
@@ -49,7 +49,7 @@ function isValidS3Key(s3Key: string): boolean {
 export async function POST(request: Request): Promise<NextResponse> {
   try {
     const body = await request.json();
-    const { s3Key, targetCodec } = body;
+    const { s3Key, videoFileId, targetCodec } = body;
 
     // Validate s3Key
     if (!s3Key || typeof s3Key !== "string") {
@@ -79,8 +79,14 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     const codec = targetCodec as TargetCodec;
 
-    // Verify that the VideoFile exists
-    const videoFile = await getVideoFileByS3Key(s3Key);
+    // Verify that the VideoFile exists (try by id first, then fallback to s3Key)
+    let videoFile = null;
+    if (videoFileId && typeof videoFileId === "string") {
+      videoFile = await getVideoFileById(videoFileId);
+    }
+    if (!videoFile && s3Key) {
+      videoFile = await getVideoFileByS3Key(s3Key);
+    }
     if (!videoFile) {
       return NextResponse.json(
         { error: "Video file not found. Please upload the file first." },
@@ -114,6 +120,9 @@ export async function POST(request: Request): Promise<NextResponse> {
       try {
         const batchClient = new BatchClient({ region });
 
+        const inputKey = s3Key;
+        const outputKey = `outputs/${jobId}/${videoFile.filename}`;
+
         const submitParams = {
           jobName: jobId,
           jobQueue,
@@ -121,9 +130,9 @@ export async function POST(request: Request): Promise<NextResponse> {
           containerOverrides: {
             environment: [
               { name: "JOB_ID", value: jobId },
-              { name: "S3_KEY", value: s3Key },
+              { name: "INPUT_S3_KEY", value: inputKey },
+              { name: "OUTPUT_S3_KEY", value: outputKey },
               { name: "TARGET_CODEC", value: codec },
-              { name: "OUTPUT_PREFIX", value: `outputs/${jobId}/` },
             ],
           },
         };
