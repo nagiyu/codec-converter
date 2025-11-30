@@ -220,6 +220,12 @@ Resources:
               - lambda:ListVersionsByFunction
               - lambda:AddPermission
               - lambda:RemovePermission
+              - lambda:TagResource
+              - lambda:UntagResource
+              - lambda:CreateFunctionUrlConfig
+              - lambda:UpdateFunctionUrlConfig
+              - lambda:GetFunctionUrlConfig
+              - lambda:DeleteFunctionUrlConfig
             Resource: '*'
 
           # Batch ジョブ定義更新権限
