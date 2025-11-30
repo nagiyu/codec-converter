@@ -89,6 +89,7 @@ Resources:
           - GET
           - HEAD
           - POST
+          - OPTIONS
 
 Outputs:
   NextjsFunctionName:
