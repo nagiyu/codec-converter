@@ -86,10 +86,10 @@ Resources:
         AllowOrigins:
           - '*'
         AllowMethods:
-          - GET
-          - HEAD
-          - POST
           - '*'
+          # - GET
+          # - HEAD
+          # - POST
 
 Outputs:
   NextjsFunctionName:
