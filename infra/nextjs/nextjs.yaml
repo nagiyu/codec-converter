@@ -69,6 +69,14 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
+  NextjsFunctionUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref NextjsFunction
+      Action: lambda:InvokeFunctionUrl
+      Principal: '*'
+      FunctionUrlAuthType: NONE
+
   NextjsFunctionUrl:
     Type: AWS::Lambda::Url
     Properties:
