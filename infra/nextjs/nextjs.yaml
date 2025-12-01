@@ -71,27 +71,6 @@ Resources:
         - Key: Environment
           Value: !Ref Environment
 
-  NextjsFunctionUrlPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref NextjsFunction
-      Action: lambda:InvokeFunctionUrl
-      Principal: '*'
-      FunctionUrlAuthType: NONE
-
-  NextjsFunctionUrl:
-    Type: AWS::Lambda::Url
-    Properties:
-      TargetFunctionArn: !GetAtt NextjsFunction.Arn
-      AuthType: NONE
-      Cors:
-        AllowOrigins:
-          - '*'
-        AllowMethods:
-          - GET
-          - HEAD
-          - POST
-
 Outputs:
   NextjsFunctionName:
     Description: Lambda function name
@@ -104,9 +83,3 @@ Outputs:
     Value: !GetAtt NextjsFunction.Arn
     Export:
       Name: !Sub '${AWS::StackName}-NextjsFunctionArn'
-
-  NextjsFunctionUrl:
-    Description: Function URL for Next.js
-    Value: !GetAtt NextjsFunctionUrl.FunctionUrl
-    Export:
-      Name: !Sub '${AWS::StackName}-NextjsFunctionUrl'

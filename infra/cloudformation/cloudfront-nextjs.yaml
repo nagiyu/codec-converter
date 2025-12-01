@@ -1,0 +1,182 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFront + API Gateway (Regional) fronting an existing Lambda for Next.js
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - prod
+    Description: Deployment environment
+  DomainName:
+    Type: String
+    Description: Custom domain to attach to CloudFront (e.g. example.com or www.example.com)
+  CertificateArn:
+    Type: String
+    Description: ACM certificate ARN in us-east-1 covering DomainName and *.domain
+  NextjsFunctionArn:
+    Type: String
+    Description: ARN of the existing Next.js Lambda function to integrate with API Gateway
+  LogBucketName:
+    Type: String
+    Default: ""
+    Description: (Optional) S3 bucket name for CloudFront access logs. Leave empty to disable.
+
+Conditions:
+  CreateLogs: !Not [!Equals [!Ref LogBucketName, ""]]
+
+Resources:
+  ApiGatewayApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: !Sub codec-converter-nextjs-api-${Environment}
+      ProtocolType: HTTP
+      CorsConfiguration:
+        AllowOrigins:
+          - '*'
+        AllowMethods:
+          - GET
+          - HEAD
+          - POST
+          - OPTIONS
+        AllowHeaders:
+          - '*'
+
+  ApiGatewayIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref ApiGatewayApi
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Ref NextjsFunctionArn
+      PayloadFormatVersion: "2.0"
+      ConnectionType: INTERNET
+
+  ApiGatewayRouteDefault:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref ApiGatewayApi
+      RouteKey: $default
+      Target: !Sub integrations/${ApiGatewayIntegration}
+
+  ApiGatewayStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref ApiGatewayApi
+      StageName: $default
+      AutoDeploy: true
+      DefaultRouteSettings:
+        DataTraceEnabled: false
+        DetailedMetricsEnabled: false
+
+  LambdaInvokePermissionForApi:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref NextjsFunctionArn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      # SourceArn can be restricted but left open to the Api's ARN pattern
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiGatewayApi}/*/*
+
+  CloudFrontLogBucket:
+    Type: AWS::S3::Bucket
+    Condition: CreateLogs
+    Properties:
+      BucketName: !If [CreateLogs, !Ref LogBucketName, !Ref "AWS::NoValue"]
+      AccessControl: LogDeliveryWrite
+      LifecycleConfiguration:
+        Rules:
+          - Status: Enabled
+            ExpirationInDays: 3650
+      Tags:
+        - Key: Application
+          Value: codec-converter
+        - Key: Environment
+          Value: !Ref Environment
+
+  CloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub "OAI for codec-converter-nextjs-${Environment}"
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "CloudFront for codec-converter-nextjs-${Environment}"
+        Aliases:
+          - !Ref DomainName
+        Origins:
+          - Id: ApiOrigin
+            DomainName: !Sub "${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com"
+            OriginPath: ""
+            CustomOriginConfig:
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+              OriginSslProtocols:
+                - TLSv1.2
+        DefaultCacheBehavior:
+          TargetOriginId: ApiOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+            - POST
+          CachedMethods:
+            - GET
+            - HEAD
+          ForwardedValues:
+            QueryString: true
+            Headers:
+              - Host
+              - Authorization
+              - Content-Type
+              - Accept
+              - Origin
+          Compress: true
+          MinTTL: 0
+          DefaultTTL: 0
+          MaxTTL: 0
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2019
+        HttpVersion: http2
+        PriceClass: PriceClass_100
+        # Optional logging
+        Logging:
+          !If
+            - CreateLogs
+            - Bucket: !GetAtt CloudFrontLogBucket.DomainName
+              IncludeCookies: false
+              Prefix: !Sub cloudfront/${Environment}/
+            - !Ref "AWS::NoValue"
+
+Outputs:
+  ApiId:
+    Description: API Gateway (HTTP API) id
+    Value: !Ref ApiGatewayApi
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiId'
+
+  ApiEndpoint:
+    Description: Regional API endpoint (without stage path)
+    Value: !Sub https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiEndpoint'
+
+  CloudFrontDistributionDomain:
+    Description: CloudFront distribution domain name
+    Value: !GetAtt CloudFrontDistribution.DomainName
+    Export:
+      Name: !Sub '${AWS::StackName}-CloudFrontDomain'
+
+  CloudFrontDistributionId:
+    Description: CloudFront distribution id
+    Value: !Ref CloudFrontDistribution
+    Export:
+      Name: !Sub '${AWS::StackName}-CloudFrontId'
