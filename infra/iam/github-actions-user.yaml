@@ -257,6 +257,39 @@ Resources:
               - dynamodb:DescribeContinuousBackups
             Resource: '*'
 
+          # Cloud Front 操作権限
+          - Sid: AllowCloudFrontOperations
+            Effect: Allow
+            Action:
+              - cloudfront:CreateDistribution
+              - cloudfront:UpdateDistribution
+              - cloudfront:DeleteDistribution
+              - cloudfront:GetDistribution
+              - cloudfront:GetDistributionConfig
+              - cloudfront:ListDistributions
+              - cloudfront:CreateInvalidation
+              - cloudfront:GetInvalidation
+              - cloudfront:TagResource
+              - cloudfront:UntagResource
+            Resource: '*'
+
+          # API Gateway 操作権限
+          - Sid: AllowAPIGatewayOperations
+            Effect: Allow
+            Action:
+              - apigatewayv2:CreateApi
+              - apigatewayv2:UpdateApi
+              - apigatewayv2:DeleteApi
+              - apigatewayv2:GetApi
+              - apigatewayv2:CreateRoute
+              - apigatewayv2:CreateIntegration
+              - apigatewayv2:CreateStage
+              - apigatewayv2:DeployApi
+              - apigatewayv2:GetDeployments
+              - apigatewayv2:TagResource
+              - apigatewayv2:UntagResource
+            Resource: '*'
+
   # ============================================================================
   # GitHub Actions 用 IAM ユーザー
   # ============================================================================
