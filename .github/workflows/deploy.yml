@@ -360,6 +360,8 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    outputs:
+      nextjs_function_arn: ${{ steps.get-nextjs.outputs.arn }}
 
     steps:
       - name: Checkout code
@@ -443,6 +445,17 @@ jobs:
             --capabilities CAPABILITY_NAMED_IAM \
             --no-fail-on-empty-changeset
 
+      - name: Get Next.js Function ARN
+        id: get-nextjs
+        run: |
+          STACK=codec-converter-nextjs-${{ needs.setup.outputs.environment }}
+          ARN=$(aws cloudformation describe-stacks --stack-name $STACK --query "Stacks[0].Outputs[?OutputKey=='NextjsFunctionArn'].OutputValue" --output text || echo "")
+          if [ -z "$ARN" ] || [ "$ARN" = "None" ]; then
+            echo "ERROR: Next.js Function ARN is empty. Aborting." >&2
+            exit 1
+          fi
+          echo "arn=$ARN" >> $GITHUB_OUTPUT
+
   deploy-cloudfront:
     name: Deploy CloudFront
     runs-on: ubuntu-latest
@@ -462,16 +475,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Get Next.js Lambda ARN from CloudFormation exports
-        id: get_nextjs
-        run: |
-          ARN=$(aws cloudformation list-exports --query "Exports[?contains(Name, 'NextjsFunctionArn')].Value | [0]" --output text)
-          if [ -z "$ARN" ] || [ "$ARN" = "None" ]; then
-            echo "NextjsFunctionArn export not found" >&2
-            exit 1
-          fi
-          echo "arn=$ARN" >> "$GITHUB_OUTPUT"
-
       - name: Deploy CloudFront + API Gateway CloudFormation
         run: |
           aws cloudformation deploy \
@@ -481,7 +484,7 @@ jobs:
             --parameter-overrides \
               DomainName=${{ secrets.DOMAIN_NAME }} \
               CertificateArn=${{ secrets.ACM_CERT_ARN }} \
-              NextjsFunctionArn=${{ steps.get_nextjs.outputs.arn }} \
+              NextjsFunctionArn=${{ needs.deploy-nextjs.outputs.nextjs_function_arn }} \
               Environment=${{ needs.setup.outputs.environment }}
 
   # Docker build and push for batch worker
