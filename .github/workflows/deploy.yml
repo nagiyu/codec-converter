@@ -482,6 +482,7 @@ jobs:
             --stack-name codec-converter-nextjs-cloudfront-${{ needs.setup.outputs.environment }} \
             --capabilities CAPABILITY_NAMED_IAM CAPABILITY_IAM \
             --parameter-overrides \
+              Environment=${{ needs.setup.outputs.environment }} \
               DomainName=${{ secrets.DOMAIN_NAME }} \
               CertificateArn=${{ secrets.ACM_CERT_ARN }} \
               NextjsFunctionArn=${{ needs.deploy-nextjs.outputs.nextjs_function_arn }} \
